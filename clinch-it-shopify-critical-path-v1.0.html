@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinch IT — Shopify Build: Critical Path v1.0</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #f5f5f5;
+    display: flex;
+  }
+
+  #sidebar {
+    width: 240px;
+    min-width: 240px;
+    background: #111;
+    color: #ccc;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+    padding: 24px 0;
+    flex-shrink: 0;
+  }
+
+  #sidebar h1 {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0 20px 12px;
+    border-bottom: 1px solid #2a2a2a;
+    margin-bottom: 4px;
+  }
+
+  #sidebar .version {
+    font-size: 11px;
+    color: #555;
+    padding: 8px 20px 12px;
+    border-bottom: 1px solid #222;
+    margin-bottom: 4px;
+    line-height: 1.5;
+  }
+
+  #sidebar .back-link {
+    display: block;
+    padding: 8px 20px 10px;
+    font-size: 11px;
+    color: #555;
+    text-decoration: none;
+    border-bottom: 1px solid #222;
+    margin-bottom: 8px;
+  }
+  #sidebar .back-link:hover { color: #fff; }
+
+  #sidebar .nav-group { margin-bottom: 4px; }
+
+  #sidebar .nav-group-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #444;
+    padding: 10px 20px 4px;
+  }
+
+  #sidebar a {
+    display: block;
+    padding: 5px 20px;
+    color: #999;
+    text-decoration: none;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  #sidebar a:hover { color: #fff; background: #1a1a1a; }
+  #sidebar a.active { color: #fff; border-left: 2px solid #fff; padding-left: 18px; }
+
+  #main {
+    flex: 1;
+    padding: 48px 56px 80px;
+    max-width: 1000px;
+    overflow-x: hidden;
+  }
+
+  .doc-header {
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 3px solid #111;
+  }
+
+  .doc-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+
+  .doc-header .meta {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.6;
+  }
+
+  .doc-header .meta a { color: #4f8ef7; text-decoration: none; }
+  .doc-header .meta a:hover { text-decoration: underline; }
+
+  .doc-header .intro {
+    margin-top: 16px;
+    font-size: 13px;
+    color: #555;
+    max-width: 700px;
+    line-height: 1.7;
+  }
+
+  /* Phase sections */
+  .phase {
+    margin-bottom: 56px;
+    scroll-margin-top: 24px;
+  }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #111;
+  }
+
+  .phase-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: #111;
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .phase-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .phase-desc {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 24px;
+    max-width: 720px;
+    line-height: 1.7;
+  }
+
+  .track {
+    margin-bottom: 28px;
+  }
+
+  .track-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #999;
+    margin-bottom: 8px;
+    padding-left: 2px;
+  }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; margin-bottom: 4px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  th {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: top;
+    color: #444;
+    line-height: 1.55;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+
+  td:first-child {
+    font-weight: 700;
+    color: #111;
+    white-space: nowrap;
+    font-size: 12px;
+    width: 40px;
+  }
+
+  td.action {
+    color: #111;
+    min-width: 260px;
+  }
+
+  td.source { color: #888; font-size: 12px; white-space: nowrap; }
+  td.notes { color: #666; font-size: 12px; }
+  td.owner { color: #888; font-size: 12px; white-space: nowrap; }
+
+  /* Badges */
+  .badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+    white-space: nowrap;
+    margin-right: 4px;
+  }
+
+  .badge-parallel { background: #dcfce7; color: #166534; }
+  .badge-blocks { background: #fef3c7; color: #92400e; }
+  .badge-blocked { background: #fee2e2; color: #991b1b; }
+  .badge-decision { background: #ede9fe; color: #5b21b6; }
+
+  /* Critical path */
+  .crit-chain {
+    background: #111;
+    color: #e2e8f0;
+    border-radius: 6px;
+    padding: 20px 24px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    line-height: 2;
+    margin: 16px 0 24px;
+    overflow-x: auto;
+  }
+
+  .crit-chain .node {
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .crit-chain .arrow {
+    color: #4f8ef7;
+  }
+
+  .callout {
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .callout-warn {
+    background: #fef3c7;
+    border-left: 3px solid #d97706;
+    color: #92400e;
+  }
+
+  .callout-note {
+    background: #eff6ff;
+    border-left: 3px solid #3b82f6;
+    color: #1e3a5f;
+  }
+
+  .callout strong { color: inherit; }
+
+  ul.bullets {
+    padding-left: 18px;
+    margin: 8px 0;
+  }
+
+  ul.bullets li {
+    margin-bottom: 6px;
+    color: #555;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  strong { color: #111; }
+
+  @media print {
+    body { display: block; }
+    #sidebar { display: none; }
+    #main { padding: 24px; max-width: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <h1>Clinch IT — Shopify</h1>
+  <div class="version">Critical Path v1.0<br>Companion to Architecture v2.1 + Config v1.3</div>
+  <a class="back-link" href="/">&larr; All documents</a>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Phases</div>
+    <a href="#phase0">Phase 0 — Unblock</a>
+    <a href="#phase1">Phase 1 — Foundation</a>
+    <a href="#phase2">Phase 2 — Structure</a>
+    <a href="#phase3">Phase 3 — Filtering &amp; Pages</a>
+    <a href="#phase4">Phase 4 — Trust &amp; Comms</a>
+    <a href="#phase5">Phase 5 — Stock &amp; QA</a>
+    <a href="#phase6">Phase 6 — Launch &amp; Beyond</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Summary</div>
+    <a href="#critpath">Critical Path</a>
+  </div>
+
+  <div class="nav-group" style="margin-top:8px;">
+    <div class="nav-group-label">Companion Docs</div>
+    <a href="/clinch-it-shopify-architecture-v2_1.html">Architecture v2.1 &rarr;</a>
+    <a href="/clinch-it-shopify-configuration-v1.3.html">Configuration v1.3 &rarr;</a>
+  </div>
+</nav>
+
+<div id="main">
+
+  <div class="doc-header">
+    <h1>Clinch IT — Shopify Build: Prioritised Implementation Timeline</h1>
+    <div class="meta">
+      v1.0 &nbsp;·&nbsp; June 2026 &nbsp;·&nbsp; Companion to
+      <a href="/clinch-it-shopify-architecture-v2_1.html">Architecture v2.1</a> and
+      <a href="/clinch-it-shopify-configuration-v1.3.html">Configuration v1.3</a>
+    </div>
+    <p class="intro">
+      This timeline breaks the build into discrete, assignable actions across three tracks — Design, Configuration, Development — sequenced by dependency.
+      Actions marked <span class="badge badge-parallel">Parallel</span> can run alongside other actions in the same phase with no blocking relationship.
+      Actions marked <span class="badge badge-blocks">Blocks &rarr;</span> name what they unlock.
+      Actions marked <span class="badge badge-blocked">Blocked by</span> name their prerequisite.
+      Each action references the source document and section so detail can be looked up directly.
+    </p>
+  </div>
+
+  <!-- PHASE 0 -->
+  <div class="phase" id="phase0">
+    <div class="phase-header">
+      <span class="phase-badge">Phase 0</span>
+      <h2>Unblock</h2>
+    </div>
+    <p class="phase-desc">No build effort. Pure decision resolution. These five items gate the most downstream work and have the worst "discovered late" cost. Aim to resolve all within the first 1–2 days before any build effort begins.</p>
+
+    <div class="table-wrap"><table>
+      <thead>
+        <tr><th>#</th><th>Action</th><th>Owner</th><th>Source</th><th>Blocks</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>0.1</td>
+          <td class="action"><strong>Confirm with Clinch IT's accountant whether the business operates under the VAT Margin Scheme</strong> (OD-C11)</td>
+          <td class="owner">Clinch IT / accountant</td>
+          <td class="source">Config §Tax</td>
+          <td class="notes">Phase 1.7 (VAT config), all product pricing — re-pricing post-intake is far more costly than configuring correctly upfront</td>
+        </tr>
+        <tr>
+          <td>0.2</td>
+          <td class="action"><strong>Confirm ICO registration status</strong> (OD-C13) — register if not already done</td>
+          <td class="owner">Clinch IT</td>
+          <td class="source">Config §Privacy, OD-C13</td>
+          <td class="notes">Go-live (legal requirement, not a build blocker)</td>
+        </tr>
+        <tr>
+          <td>0.3</td>
+          <td class="action"><strong>Confirm current/intended Shopify plan tier</strong> (OD-C17)</td>
+          <td class="owner">Clinch IT</td>
+          <td class="source">Config §EU Shipping, OD-C17</td>
+          <td class="notes">Phase 6 (EU shipping) — determines whether EU carrier-calculated rates are buildable at all</td>
+        </tr>
+        <tr>
+          <td>0.4</td>
+          <td class="action"><strong>Decide whether Grade D stock is listed on the Shopify storefront</strong></td>
+          <td class="owner">Clinch IT</td>
+          <td class="source">Architecture §9, v2.1 changelog</td>
+          <td class="notes">Phase 4.2 (grading guide), Phase 2.3 (collection rules), Phase 3.2 (filters) — touches three areas if "yes"</td>
+        </tr>
+        <tr>
+          <td>0.5</td>
+          <td class="action"><strong>Resolve OD-C21 — confirm generic contact email</strong> (e.g. hello@clinchit.com) to replace vdavis@clinchit.com</td>
+          <td class="owner">Clinch IT</td>
+          <td class="source">Config §Policies, OD-C21</td>
+          <td class="notes">Phase 4.4–4.7 (policy pages, all email templates — 13 instances)</td>
+        </tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="phase" id="phase1">
+    <div class="phase-header">
+      <span class="phase-badge">Phase 1</span>
+      <h2>Foundation</h2>
+    </div>
+    <p class="phase-desc">All three tracks can start simultaneously once Phase 0 is resolved. Within Development, 1.1 is the critical-path item — everything in Phase 2 development depends on it.</p>
+
+    <div class="track">
+      <div class="track-label">Development</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1.1</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Create all metafield definitions in Shopify admin</strong> — universal set (condition_grade, condition_notes, colour, charger_included, warranty_months, serial_number) plus laptop, desktop, and phone-specific sets</td>
+            <td class="source">Architecture §6a–6d</td>
+            <td class="notes">Set warranty_months default value to <strong>3</strong> (confirmed v2.1)</td>
+          </tr>
+          <tr>
+            <td>1.2</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 1.1</span> <strong>Set up product type taxonomy</strong> — exact strings for Laptop, Desktop, Phone, etc.</td>
+            <td class="source">Architecture §8</td>
+            <td class="notes">Must match exactly or collection rules won't fire</td>
+          </tr>
+          <tr>
+            <td>1.3</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 1.1</span> <strong>Set up tag taxonomy</strong> — brand tags, grade tags, OS tags, battery health bands, screen size bands, network tags</td>
+            <td class="source">Architecture §8, Config §06b</td>
+            <td class="notes">Tag strings are case-sensitive, lowercase, hyphen-delimited</td>
+          </tr>
+          <tr>
+            <td>1.4</td>
+            <td class="action"><span class="badge badge-blocks">Blocks &rarr; 5.1</span> <strong>Install Matrixify</strong> and do a test import of 2–3 sample products using the provided template</td>
+            <td class="source">Config §06c</td>
+            <td class="notes">Validates schema before bulk intake — catch header/format issues on a small batch</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="track">
+      <div class="track-label">Configuration</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1.5</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Confirm single fulfilment location</strong> in Shopify Settings → Locations</td>
+            <td class="source">Config §Shipping Config, Step 1</td>
+            <td class="notes">Remove any default placeholder locations</td>
+          </tr>
+          <tr>
+            <td>1.6</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Activate Shopify Payments</strong> — bank account, ID verification, company reg. and VAT numbers</td>
+            <td class="source">Config §Payments</td>
+            <td class="notes">Reg. No. 13415386, VAT 396134084 confirmed</td>
+          </tr>
+          <tr>
+            <td>1.7</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 0.1</span> <strong>Configure UK VAT</strong> — tax region, VAT number, 20% standard rate, prices inclusive of VAT</td>
+            <td class="source">Config §Tax</td>
+            <td class="notes">If OD-C11 resolves to "yes, margin scheme" — this step changes substantially, may need accounting software integration</td>
+          </tr>
+          <tr>
+            <td>1.8</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Enable Shop Pay, Apple Pay, Google Pay</strong> in Shopify Payments settings</td>
+            <td class="source">Config §Payments</td>
+            <td class="notes">Low-effort, high-conversion — no dependencies</td>
+          </tr>
+          <tr>
+            <td>1.9</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Decide and action Klarna (OD-C09) and PayPal (OD-C10)</strong></td>
+            <td class="source">Config §Payments</td>
+            <td class="notes">Independent decisions, can be actioned any time before launch</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="track">
+      <div class="track-label">Design</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1.10</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <span class="badge badge-blocks">Blocks &rarr; 2.4, 3.3</span> <strong>Select base theme</strong></td>
+            <td class="source">Architecture §11 Phase 1</td>
+            <td class="notes">Lock before any custom template work begins — constrains what's achievable later</td>
+          </tr>
+          <tr>
+            <td>1.11</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Confirm graphic design assets are commissioned</strong> — logo, brand colours, fonts for checkout branding</td>
+            <td class="source">Config §Checkout</td>
+            <td class="notes">Needed for Phase 2 checkout branding step; owned by Clinch IT's designer</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase" id="phase2">
+    <div class="phase-header">
+      <span class="phase-badge">Phase 2</span>
+      <h2>Structure</h2>
+    </div>
+
+    <div class="track">
+      <div class="track-label">Development</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>2.1</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 1.1, 1.2, 1.3</span> <strong>Build core collections</strong> — all laptops, brand laptop collections, all desktops, brand desktop collections, all phones, Apple iPads</td>
+            <td class="source">Architecture §11 Phase 1, §4</td>
+            <td class="notes">First hard sequential dependency in the plan</td>
+          </tr>
+          <tr>
+            <td>2.2</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 2.1</span> <strong>Build automated collection rules</strong> using tag/metafield combinations defined in §8</td>
+            <td class="source">Architecture §8</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>2.3</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 0.4</span> <strong>If Grade D in scope: add grade-d collection rule and tag</strong></td>
+            <td class="source">Architecture §9, v2.1</td>
+            <td class="notes">Skip entirely if Grade D is eBay-only</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="track">
+      <div class="track-label">Configuration</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>2.4</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <span class="badge badge-blocked">Blocked by 1.5</span> <strong>Create UK shipping zone</strong> — all UK countries</td>
+            <td class="source">Config §Shipping Zones, Step 2</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>2.5</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Add UK shipping rate</strong> — Free Standard Delivery, flat rate £0.00, no conditions</td>
+            <td class="source">Config §Shipping Zones, Step 3</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>2.6</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Resolve OD-C04</strong> — restrict NI/Highlands/Islands postcodes at checkout, or manage manually</td>
+            <td class="source">Config §Shipping Policy, OD-C04</td>
+            <td class="notes">Quick decision, low build effort either way</td>
+          </tr>
+          <tr>
+            <td>2.7</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Resolve OD-C08</strong> — Channel Islands/Isle of Man in or out of UK free zone</td>
+            <td class="source">Config §Shipping Zones, OD-C08</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>2.8</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Resolve OD-C06</strong> — confirm DPD label generation workflow (DPD Local Online vs Shipstation)</td>
+            <td class="source">Config §Shipping Config, OD-C06</td>
+            <td class="notes">Operational confirmation, doesn't block Shopify-side config</td>
+          </tr>
+          <tr>
+            <td>2.9</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Resolve OD-C07</strong> — confirm DPD service tier</td>
+            <td class="source">Config §Packaging, OD-C07</td>
+            <td class="notes">Affects delivery time copy in 4.5/4.6</td>
+          </tr>
+          <tr>
+            <td>2.10</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Set tracking URL format</strong> for DPD</td>
+            <td class="source">Config §Shipping Config, Step 5</td>
+            <td class="notes"><code style="font-size:11px;background:#f4f4f4;padding:1px 4px;border-radius:3px;border:1px solid #ddd;">https://www.dpd.co.uk/apps/tracking/?reference=[TRACKING_NUMBER]</code></td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="track">
+      <div class="track-label">Design</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>2.11</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <span class="badge badge-blocked">Blocked by 1.10</span> <strong>Build mega-menu navigation</strong> — Laptops, Desktops, Phones, Accessories, Deals, with Browse by Budget contextual filters</td>
+            <td class="source">Architecture §3</td>
+            <td class="notes">Phone mega-menu kept minimal until sub-brand inventory confirmed</td>
+          </tr>
+          <tr>
+            <td>2.12</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <span class="badge badge-blocked">Blocked by 1.10</span> <strong>Implement utility bar</strong> with confirmed copy: "Free UK Delivery | 90-Day Warranty on Every Device | 14-Day Returns"</td>
+            <td class="source">Architecture §3, v2.1</td>
+            <td class="notes">Copy is final — no further confirmation needed</td>
+          </tr>
+          <tr>
+            <td>2.13</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <span class="badge badge-blocked">Blocked by 1.10</span> <strong>Build mobile navigation</strong></td>
+            <td class="source">Architecture §3</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase" id="phase3">
+    <div class="phase-header">
+      <span class="phase-badge">Phase 3</span>
+      <h2>Filtering and Pages</h2>
+    </div>
+    <p class="phase-desc">This phase has the tightest sequential chain in development. Configuration runs independently throughout.</p>
+
+    <div class="track">
+      <div class="track-label">Development</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>3.1</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 2.1, 2.2, 1.4</span> <strong>Configure Search &amp; Discovery</strong> — map metafields to filters</td>
+            <td class="source">Architecture §5</td>
+            <td class="notes">Activate only filters with sufficient stock density — may require a small pre-batch of stock (see 3.1a)</td>
+          </tr>
+          <tr>
+            <td>3.1a</td>
+            <td class="action"><span class="badge badge-parallel">Parallel with 3.1</span> <strong>Run a small pre-intake batch (10–20 products)</strong> across categories to validate filter density before finalising which filters activate</td>
+            <td class="source">Architecture §5, Config §06d</td>
+            <td class="notes">Optional but recommended — avoids activating filters with near-zero results</td>
+          </tr>
+          <tr>
+            <td>3.2</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 3.1, 0.4</span> <strong>Build mobile filter drawer</strong></td>
+            <td class="source">Architecture §5</td>
+            <td class="notes">If Grade D in scope, include grade-d as a filter option</td>
+          </tr>
+          <tr>
+            <td>3.3</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 3.2, 1.10</span> <strong>Build collection page templates</strong> — hub pages, brand sub-collections, sort and active filter UI</td>
+            <td class="source">Architecture §11 Phase 4</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>3.4</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 3.3</span> <strong>Build product card template</strong></td>
+            <td class="source">Architecture §11 Phase 4</td>
+            <td class="notes">Must reflect battery health display decision (Trust Architecture §10)</td>
+          </tr>
+          <tr>
+            <td>3.5</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 3.4</span> <strong>Build product page template</strong> — spec table from metafields, condition notes, battery health display, warranty CTA, charger indicator</td>
+            <td class="source">Architecture §11 Phase 5</td>
+            <td class="notes">warranty_months=3 default feeds the warranty CTA copy</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="track">
+      <div class="track-label">Configuration</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>3.6</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Set customer accounts to optional</strong> (guest checkout enabled), enable new passwordless account system</td>
+            <td class="source">Config §Checkout, Customer Accounts</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>3.7</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Set contact method to Email only</strong></td>
+            <td class="source">Config §Checkout</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>3.8</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Configure form fields</strong> — company name optional, address line 2 optional, shipping phone number <strong>required</strong> (DPD requirement)</td>
+            <td class="source">Config §Checkout, Form Fields</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>3.9</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Disable automatic order fulfilment</strong> — refurb units require manual inspection before dispatch</td>
+            <td class="source">Config §Checkout, Order Processing</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>3.10</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Enable automatic order archiving</strong> post-fulfilment</td>
+            <td class="source">Config §Checkout</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>3.11</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Disable tipping</strong></td>
+            <td class="source">Config §Checkout</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>3.12</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Enable ToS checkbox at checkout</strong></td>
+            <td class="source">Config §Checkout</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>3.13</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <span class="badge badge-blocked">Blocked by 1.11</span> <strong>Apply checkout branding</strong> once design assets are available</td>
+            <td class="source">Config §Checkout</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>3.14</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Configure abandoned checkout</strong> — enable, 1 hour delay, resolve OD-C16 (recipient scope)</td>
+            <td class="source">Config §Checkout, Abandoned Checkout, OD-C16</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>3.15</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Implement fraud settings</strong> — fraud analysis, CVV match required, AVS flag-not-decline, 3D Secure on, no auto-fulfil on High risk</td>
+            <td class="source">Config §Fraud Settings</td>
+            <td class="notes">Thresholds: Medium/High risk → hold; &gt;£400 UK / &gt;£200 EU → flag; 2+ orders same card in 24h → hold all</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase" id="phase4">
+    <div class="phase-header">
+      <span class="phase-badge">Phase 4</span>
+      <h2>Trust and Communications</h2>
+    </div>
+    <p class="phase-desc">Design depends on Phase 3 templates. Configuration's policy/email work has its own internal sequencing — resolve the quick operational decisions (4.1) first, since they unblock multiple downstream copy tasks at once.</p>
+
+    <div class="track">
+      <div class="track-label">Configuration — quick decisions first (unblocks 4.4–4.7)</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>4.1a</td>
+            <td class="action"><span class="badge badge-decision">Decision</span> <strong>Resolve OD-C01</strong> — return shipping cost in 14-day statutory window (buyer-pays or free)</td>
+            <td class="source">Config §Refund Policy, OD-C01</td>
+            <td class="notes">Feeds 4.4, 4.6</td>
+          </tr>
+          <tr>
+            <td>4.1b</td>
+            <td class="action"><span class="badge badge-decision">Decision</span> <strong>Resolve OD-C02</strong> — warranty return shipping split (days 15–90)</td>
+            <td class="source">Config §Warranty Policy, OD-C02</td>
+            <td class="notes">Feeds 4.5</td>
+          </tr>
+          <tr>
+            <td>4.1c</td>
+            <td class="action"><span class="badge badge-decision">Decision</span> <strong>Resolve OD-C14</strong> — returns inspection turnaround time</td>
+            <td class="source">Config §Transactional Emails, OD-C14</td>
+            <td class="notes">Feeds 4.7 (return instructions email)</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="track">
+      <div class="track-label">Configuration — implementation</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>4.4</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 4.1a, 0.5</span> <strong>Implement Refund &amp; Returns Policy</strong> in Settings → Policies</td>
+            <td class="source">Config §Refund Policy</td>
+            <td class="notes">Statutory rights first, warranty exclusions layered from day 15</td>
+          </tr>
+          <tr>
+            <td>4.5</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 4.1b, 0.5</span> <strong>Implement Warranty Policy page</strong></td>
+            <td class="source">Config §Warranty Policy</td>
+            <td class="notes">Include grading table — add Grade D row if 0.4 = "yes"</td>
+          </tr>
+          <tr>
+            <td>4.6</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 0.5</span> <strong>Implement Shipping Policy</strong> — UK + EU sections</td>
+            <td class="source">Config §Shipping Policy</td>
+            <td class="notes">EU section drafted; finalise once 2.6–2.9 resolved</td>
+          </tr>
+          <tr>
+            <td>4.7</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 0.5</span> <strong>Implement/replace Terms of Service</strong> — working draft provided, flag for legal review</td>
+            <td class="source">Config §ToS</td>
+            <td class="notes">Independent legal review recommended before go-live</td>
+          </tr>
+          <tr>
+            <td>4.8</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Generate Privacy Policy</strong> from Shopify's UK template generator, customise per Config §Privacy</td>
+            <td class="source">Config §Privacy Policy</td>
+            <td class="notes">Depends on 0.2 (ICO status) for completeness</td>
+          </tr>
+          <tr>
+            <td>4.9</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 0.5, 4.1c</span> <strong>Configure transactional email templates</strong> — order confirmation, shipping confirmation, return instructions, refund confirmation</td>
+            <td class="source">Config §Transactional Emails</td>
+            <td class="notes">All 5 templates have copy ready in Config doc</td>
+          </tr>
+          <tr>
+            <td>4.10</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>Global find-and-replace of contact email</strong> across all policy pages and email templates once 0.5 resolved</td>
+            <td class="source">OD-C21</td>
+            <td class="notes">13 instances — do this as a single pass after 4.4–4.9 drafted</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="track">
+      <div class="track-label">Design</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>4.2</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 3.5, 0.4</span> <strong>Build grading guide page</strong> (/pages/grading-guide)</td>
+            <td class="source">Architecture §11 Phase 6, §9</td>
+            <td class="notes">Include Grade D if in scope; battery thresholds per grade still TBC — flag as pending on the page if unresolved</td>
+          </tr>
+          <tr>
+            <td>4.3</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 3.5</span> <strong>Build warranty page</strong> (/pages/warranty)</td>
+            <td class="source">Architecture §11 Phase 6</td>
+            <td class="notes">Pulls from 4.5 policy copy</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- PHASE 5 -->
+  <div class="phase" id="phase5">
+    <div class="phase-header">
+      <span class="phase-badge">Phase 5</span>
+      <h2>Stock Intake and QA</h2>
+    </div>
+
+    <div class="track">
+      <div class="track-label">Configuration</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>5.1</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 1.1–1.4, 2.1, 3.1</span> <strong>Bulk stock intake via Matrixify</strong> — populate all confirmed Clinch stock across laptops, desktops, phones</td>
+            <td class="source">Config §06d, Matrixify template</td>
+            <td class="notes">Can be parallelised across categories/people using the same sheet</td>
+          </tr>
+          <tr>
+            <td>5.2</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 5.1</span> <strong>Filter health check</strong> in Search &amp; Discovery — verify new metafield values appear as filter options</td>
+            <td class="source">Config §06c</td>
+            <td class="notes">Catches metafield value inconsistencies (e.g. "16 GB" vs "16")</td>
+          </tr>
+          <tr>
+            <td>5.3</td>
+            <td class="action"><span class="badge badge-parallel">Parallel during 5.1</span> <strong>Spot-check tag application</strong> against tag taxonomy tables — grade, battery band, screen size band, brand, OS, network</td>
+            <td class="source">Config §06b</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="track">
+      <div class="track-label">Development</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>5.4</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 5.1, 5.2</span> <strong>End-to-end QA — browse to checkout</strong></td>
+            <td class="source">—</td>
+            <td class="notes">Test full journey: collection → filter → product page → add to cart → checkout → order confirmation email</td>
+          </tr>
+          <tr>
+            <td>5.5</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 5.4</span> <strong>QA all transactional emails</strong> with live order data</td>
+            <td class="source">Config §05</td>
+            <td class="notes">Verify warranty/battery exclusion language renders correctly</td>
+          </tr>
+          <tr>
+            <td>5.6</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 5.4</span> <strong>QA fraud flagging</strong> with test orders above/below thresholds</td>
+            <td class="source">Config §Fraud Settings</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>5.7</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 5.4</span> <strong>QA returns workflow</strong> — simulate a return, verify return instructions email</td>
+            <td class="source">Config §Transactional Emails</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>5.8</td>
+            <td class="action"><span class="badge badge-parallel">Parallel</span> <strong>QA all policy pages</strong> — links from checkout footer, ToS checkbox, footer navigation</td>
+            <td class="source">Config §Policies</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- PHASE 6 -->
+  <div class="phase" id="phase6">
+    <div class="phase-header">
+      <span class="phase-badge">Phase 6</span>
+      <h2>Launch and Beyond</h2>
+    </div>
+
+    <div class="track">
+      <div class="track-label">Configuration — EU shipping (conditional on 0.3)</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>6.1</td>
+            <td class="action"><span class="badge badge-blocked">Blocked by 0.3</span> <strong>If OD-C17 = Advanced plan:</strong> resolve OD-C18 (DPD Europe country coverage), OD-C19 (duties), OD-C20 (shipping app for calculated rates)</td>
+            <td class="source">Config §EU Shipping</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>6.2</td>
+            <td class="action"><strong>Configure EU shipping zone</strong> with carrier-calculated rates via chosen app</td>
+            <td class="source">Config §EU Shipping</td>
+            <td class="notes">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>6.3</td>
+            <td class="action"><strong>Verify product weights</strong> for all live products (required for EU rate calculation — should already be done at intake per 5.1)</td>
+            <td class="source">Config §Packaging</td>
+            <td class="notes">Verification pass, not a fresh data entry task if 5.1 done correctly</td>
+          </tr>
+          <tr>
+            <td>6.4</td>
+            <td class="action"><strong>If OD-C17 = no/declined:</strong> implement EU as "contact us for a quote" — disclaim in shipping policy, no checkout-level EU zone</td>
+            <td class="source">Config §EU Shipping</td>
+            <td class="notes">Smaller task, revisit if plan tier changes later</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="track">
+      <div class="track-label">Development — deferred</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Action</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>6.5</td>
+            <td class="action"><strong>eBay sync</strong> — app selection, field mapping, title templates, inventory rules</td>
+            <td class="source">Architecture §11 Phase 7</td>
+            <td class="notes">Explicitly deferred until stock migration is ready. Scope as a separate project.</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- CRITICAL PATH -->
+  <div class="phase" id="critpath">
+    <div class="phase-header">
+      <span class="phase-badge">Summary</span>
+      <h2>Critical Path</h2>
+    </div>
+    <p class="phase-desc">The longest unbroken dependency chain from start to launch:</p>
+
+    <div class="crit-chain">
+<span class="node">0.1 VAT</span> <span class="arrow">&rarr;</span>
+<span class="node">1.1 Metafields</span> <span class="arrow">&rarr;</span>
+<span class="node">1.2/1.3 Taxonomy + Tags</span> <span class="arrow">&rarr;</span>
+<span class="node">2.1 Collections</span> <span class="arrow">&rarr;</span>
+<span class="node">2.2 Collection Rules</span> <span class="arrow">&rarr;</span>
+<span class="node">3.1 Search &amp; Discovery</span> <span class="arrow">&rarr;</span>
+<span class="node">3.2 Filter Drawer</span> <span class="arrow">&rarr;</span>
+<span class="node">3.3 Collection Templates</span> <span class="arrow">&rarr;</span>
+<span class="node">3.4 Product Cards</span> <span class="arrow">&rarr;</span>
+<span class="node">3.5 Product Page</span> <span class="arrow">&rarr;</span>
+<span class="node">4.2/4.3 Trust Pages</span> <span class="arrow">&rarr;</span>
+<span class="node">5.1 Stock Intake</span> <span class="arrow">&rarr;</span>
+<span class="node">5.2 Filter Health Check</span> <span class="arrow">&rarr;</span>
+<span class="node">5.4–5.8 QA</span> <span class="arrow">&rarr;</span>
+<span class="node">Launch</span>
+    </div>
+
+    <p class="phase-desc">Everything else — payments, tax setup beyond VAT, shipping zones, checkout configuration, policies, transactional emails — runs in parallel against this spine and does not extend it, <strong>provided</strong>:</p>
+
+    <ul class="bullets">
+      <li>Phase 0 decisions (0.1–0.5) are answered within the first 1–2 days</li>
+      <li>The Phase 4 quick decisions (4.1a–c) are answered before policy/email drafting begins, since 13 email/policy instances and three policy documents wait on them</li>
+    </ul>
+
+    <div class="callout callout-warn" style="margin-top:20px;">
+      <strong>Two items most likely to silently extend the critical path if delayed:</strong>
+      <ul class="bullets" style="margin-top:8px;">
+        <li><strong>OD-C11 (VAT Margin Scheme)</strong> — affects pricing on every SKU; late resolution means re-pricing the entire catalogue post-intake</li>
+        <li><strong>0.4 (Grade D decision)</strong> — touches collections (2.3), filters (3.2), and the grading guide (4.2) simultaneously; late resolution means rework across three areas rather than one</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const sections = document.querySelectorAll('.phase');
+  const navLinks = document.querySelectorAll('#sidebar a[href^="#"]');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + entry.target.id) link.classList.add('active');
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
