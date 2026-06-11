@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinch IT — Shopify Store Architecture</title>
+<style>
+  :root {
+    --black: #0f0f0f;
+    --grey-900: #1a1a1a;
+    --grey-700: #444;
+    --grey-500: #777;
+    --grey-300: #ccc;
+    --grey-100: #f4f4f4;
+    --white: #fff;
+    --accent: #1a56db;
+    --accent-light: #e8f0fe;
+    --green: #166534;
+    --green-bg: #dcfce7;
+    --amber: #92400e;
+    --amber-bg: #fef3c7;
+    --mono: 'Courier New', Courier, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6; color: var(--grey-900); background: var(--white); padding-left: 220px; }
+  .sidebar { position: fixed; top: 0; left: 0; width: 220px; height: 100vh; overflow-y: auto; background: var(--grey-100); border-right: 1px solid var(--grey-300); padding: 24px 0; }
+  .sidebar-logo { padding: 0 20px 20px; border-bottom: 1px solid var(--grey-300); margin-bottom: 12px; }
+  .sidebar-logo .brand { font-weight: 700; font-size: 13px; color: var(--black); }
+  .sidebar-logo .doc-title { font-size: 11px; color: var(--grey-500); margin-top: 2px; line-height: 1.4; }
+  .sidebar nav a { display: block; padding: 5px 20px; font-size: 12px; color: var(--grey-700); text-decoration: none; border-left: 2px solid transparent; transition: all 0.15s; }
+  .sidebar nav a:hover { color: var(--accent); border-left-color: var(--accent); background: var(--accent-light); }
+  .sidebar nav a.active { color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+  .sidebar nav .nav-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--grey-500); padding: 14px 20px 4px; }
+  .main { padding: 48px 56px 80px; max-width: 960px; overflow-wrap: break-word; word-break: break-word; }
+  .doc-header { border-bottom: 2px solid var(--black); padding-bottom: 24px; margin-bottom: 40px; }
+  .doc-header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: var(--black); }
+  .doc-header .subtitle { font-size: 13px; color: var(--grey-500); margin-top: 4px; }
+  .section { margin-bottom: 56px; scroll-margin-top: 24px; }
+  .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--grey-300); }
+  .section-num { font-size: 11px; font-weight: 700; color: var(--grey-500); letter-spacing: 0.05em; min-width: 28px; }
+  .section h2 { font-size: 17px; font-weight: 700; color: var(--black); letter-spacing: -0.01em; }
+  h3 { font-size: 13px; font-weight: 700; color: var(--grey-900); margin: 24px 0 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+  h4 { font-size: 13px; font-weight: 600; color: var(--grey-700); margin: 18px 0 8px; }
+  p { margin-bottom: 10px; color: var(--grey-700); }
+  p:last-child { margin-bottom: 0; }
+  strong { color: var(--grey-900); }
+  .table-wrap { overflow-x: auto; margin: 12px 0 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { background: var(--black); color: var(--white); text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--grey-300); vertical-align: top; color: var(--grey-700); }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: var(--grey-100); }
+  code { font-family: var(--mono); font-size: 11.5px; background: var(--grey-100); border: 1px solid var(--grey-300); border-radius: 3px; padding: 1px 5px; color: var(--black); white-space: nowrap; }
+  td code { white-space: normal; overflow-wrap: break-word; word-break: break-word; }
+  pre { background: var(--grey-900); color: #e2e8f0; border-radius: 6px; padding: 16px 20px; overflow-x: auto; font-family: var(--mono); font-size: 12px; line-height: 1.7; margin: 12px 0 20px; }
+  pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+  .callout { border-radius: 6px; padding: 12px 16px; margin: 14px 0; font-size: 13px; line-height: 1.5; }
+  .callout-note { background: var(--accent-light); border-left: 3px solid var(--accent); color: #1e3a5f; }
+  .callout-warn { background: var(--amber-bg); border-left: 3px solid #d97706; color: var(--amber); }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.04em; vertical-align: middle; white-space: nowrap; }
+  .badge-model { background: #dbeafe; color: #1e40af; }
+  .badge-unit { background: #fce7f3; color: #9d174d; }
+  .badge-yes { background: var(--green-bg); color: var(--green); }
+  .badge-no { background: var(--grey-100); color: var(--grey-500); border: 1px solid var(--grey-300); }
+  .badge-confirm { background: var(--amber-bg); color: var(--amber); }
+  .url-tree { font-family: var(--mono); font-size: 12px; line-height: 2; background: var(--grey-100); border: 1px solid var(--grey-300); border-radius: 6px; padding: 16px 20px; margin: 12px 0; }
+  .url-tree .url-parent { color: var(--black); font-weight: 700; }
+  .url-tree .url-child { color: var(--accent); padding-left: 20px; display: block; }
+  .url-tree .url-child::before { content: "L- "; color: var(--grey-300); }
+  .url-tree .url-note { color: var(--grey-500); font-size: 11px; margin-left: 8px; }
+  .url-tree .url-group { margin-bottom: 10px; }
+  .megamenu-demo { border: 1px solid var(--grey-300); border-radius: 6px; overflow: hidden; margin: 12px 0 20px; font-size: 12.5px; }
+  .megamenu-header { background: var(--black); color: var(--white); padding: 8px 16px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+  .megamenu-body { display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--white); }
+  .megamenu-col { padding: 16px; border-right: 1px solid var(--grey-100); }
+  .megamenu-col:last-child { border-right: none; }
+  .megamenu-col-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--grey-500); margin-bottom: 8px; }
+  .megamenu-col a { display: block; color: var(--grey-700); text-decoration: none; padding: 3px 0; }
+  .megamenu-col a.contextual { color: var(--grey-500); font-style: italic; }
+  .megamenu-col a.see-all { color: var(--accent); font-weight: 600; margin-top: 6px; font-size: 12px; }
+  .filter-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+  .filter-pill { font-size: 11.5px; border: 1px solid var(--grey-300); border-radius: 20px; padding: 4px 10px; color: var(--grey-700); background: var(--white); }
+  .mapping-list { list-style: none; margin: 10px 0; }
+  .mapping-list li { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--grey-100); font-size: 12.5px; }
+  .mapping-list li:last-child { border-bottom: none; }
+  .mapping-list .map-key { font-family: var(--mono); font-size: 11.5px; color: var(--black); min-width: 220px; }
+  .mapping-list .map-arrow { color: var(--grey-300); }
+  .mapping-list .map-val { color: var(--grey-700); }
+  .mapping-list .map-scope { font-size: 10.5px; color: var(--grey-500); margin-left: auto; white-space: nowrap; }
+  .phase-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .phase-table td { padding: 10px 14px; border-bottom: 1px solid var(--grey-300); vertical-align: top; }
+  .phase-table tr:last-child td { border-bottom: none; }
+  .phase-num { font-weight: 700; font-size: 11px; white-space: nowrap; color: var(--white); background: var(--black); padding: 4px 8px; border-radius: 4px; display: inline-block; }
+  td:first-child { min-width: 180px; }
+  td:nth-child(2) { min-width: 130px; }
+  td:nth-child(3) { min-width: 100px; }
+  ul.bullets { padding-left: 18px; margin: 8px 0; }
+  ul.bullets li { margin-bottom: 6px; color: var(--grey-700); font-size: 13px; overflow-wrap: break-word; word-break: break-word; line-height: 1.6; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 0 0 20px; font-size: 12px; color: var(--grey-700); align-items: center; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .grade-a td:first-child { border-left: 3px solid #16a34a; }
+  .grade-b td:first-child { border-left: 3px solid #d97706; }
+  .grade-c td:first-child { border-left: 3px solid #dc2626; }
+  .context-note { font-size: 11.5px; color: var(--grey-500); font-style: italic; margin: -8px 0 16px; }
+  @media print { body { padding-left: 0; } .sidebar { display: none; } .main { padding: 24px; } }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">Clinch IT</div>
+    <div class="doc-title">Shopify Store Architecture</div>
+  </div>
+  <nav>
+    <a href="/" style="display:block;padding:8px 20px 10px;font-size:11px;color:var(--grey-500);text-decoration:none;border-bottom:1px solid var(--grey-300);margin-bottom:4px;">&larr; All documents</a>
+    <div class="nav-section">Sections</div>
+    <a href="#primer">How Shopify Works</a>
+    <a href="#context">1. Strategic Context</a>
+    <div class="nav-section" style="margin-top:16px;">Meta</div>
+    <a href="#decisions">Open Decisions</a>
+    <a href="#urls">2. URL Hierarchy</a>
+    <a href="#nav">3. Navigation</a>
+    <a href="#collections">4. Collection Pages</a>
+    <a href="#filters">5. Filter Architecture</a>
+    <a href="#metafields">6. Metafield Schema</a>
+    <a href="#variants">7. Variant Strategy</a>
+    <a href="#rules">8. Collection Rules</a>
+    <a href="#grading">9. Grading Standard</a>
+    <a href="#trust">10. Trust Architecture</a>
+    <a href="#phases">11. Implementation Order</a>
+  </nav>
+</aside>
+
+<main class="main">
+
+  <div class="doc-header">
+    <h1>Clinch IT — Shopify Store Architecture</h1>
+    <div class="subtitle">Site structure, navigation, collections, filtering &amp; metafield specification</div>
+    <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:12px;font-weight:700;background:var(--black);color:var(--white);padding:3px 8px;border-radius:3px;">v2.4</span>
+      <span style="font-size:12px;color:var(--grey-500);">11 June 2026</span>
+      <span style="font-size:11px;color:var(--grey-500);border-left:1px solid var(--grey-300);padding-left:10px;margin-left:4px;">Open Decision #1 resolved — store scoped to core IT categories only, "Other"/pro-AV stock excluded · Cross-referenced with Configuration v1.6</span>
+    </div>
+    <div style="margin-top:16px;background:var(--grey-100);border:1px solid var(--grey-300);border-radius:4px;padding:12px 16px;font-size:12px;color:var(--grey-700);">
+      <strong style="color:var(--black);">Companion document:</strong> Shopify Configuration v1.6 covers store policies, shipping configuration, payments, tax, checkout, transactional emails, product intake process, and open decisions. The two documents should be read together. Where configuration decisions constrain or depend on architecture decisions, cross-references are noted in Configuration §07.
+    </div>
+    <div style="margin-top:12px;background:var(--grey-100);border:1px solid var(--grey-300);border-radius:4px;padding:12px 16px;font-size:12px;">
+      <strong style="color:var(--black);display:block;margin-bottom:6px;">v2.4 Changelog</strong>
+      <ul style="padding-left:16px;color:var(--grey-700);line-height:1.8;">
+        <li><strong>Open Decision #1 resolved.</strong> Confirmed Option A — Shopify store is scoped to core IT categories only (laptops, desktops, phones, tablets, clean IT accessories). Clinch's eBay "Other" category (pro-AV, broadcast, enterprise networking, specialist liquidation stock) is confirmed excluded from Shopify and remains eBay-only.</li>
+        <li><strong>Open Decisions:</strong> Decision #1 status updated to Resolved — Option A. No changes required to §2 accessories collections (Cameras, Headphones &amp; Speakers, Networking) — these remain scoped as originally written for consumer/business IT context.</li>
+      </ul>
+    </div>
+    <div style="margin-top:12px;background:var(--grey-100);border:1px solid var(--grey-300);border-radius:4px;padding:12px 16px;font-size:12px;">
+      <strong style="color:var(--black);display:block;margin-bottom:6px;">v2.3 Changelog</strong>
+      <ul style="padding-left:16px;color:var(--grey-700);line-height:1.8;">
+        <li><strong>Tablets reinstated.</strong> v2.0 excluded tablets entirely. Confirmed back in scope (v2.3) — Apple iPads only, 2 confirmed SKUs at launch (iPad Air 2 64GB, iPad Mini 6th Gen 64GB +5G).</li>
+        <li><strong>§1 Overview:</strong> Product scope updated to "laptops, desktops, phones, tablets, and peripherals".</li>
+        <li><strong>§2 URL Hierarchy:</strong> /collections/tablets hub and /collections/apple-ipads added.</li>
+        <li><strong>§3 Navigation:</strong> Tablets added to primary nav, new Tablets mega-menu, Tablets added to footer navigation.</li>
+        <li><strong>§5 Filter Architecture:</strong> New Tablets filter table — Condition (incl. Grade D), Price, Storage, Screen Size, Connectivity, Battery Health.</li>
+        <li><strong>§6e Metafields:</strong> New Tablets section — reuses existing storage_gb, screen_size_inches, network_lock, battery_health_pct, battery_cycles definitions. No new metafield definitions required.</li>
+        <li><strong>§6f Filter Mapping:</strong> Tablets added to storage and battery health mappings; new screen_size_inches direct filter and network_lock → "Connectivity" mapping for tablets.</li>
+        <li><strong>§8 Collection Rules:</strong> "Tablet" added to required product types; /collections/apple-ipads rule added; new connectivity-wifi / connectivity-wifi-cellular tags added.</li>
+        <li><strong>Open Decision #1:</strong> Option A wording updated to include tablets in core IT scope.</li>
+      </ul>
+    </div>
+    <div style="margin-top:12px;background:var(--grey-100);border:1px solid var(--grey-300);border-radius:4px;padding:12px 16px;font-size:12px;">
+      <strong style="color:var(--black);display:block;margin-bottom:6px;">v2.2 Changelog</strong>
+      <ul style="padding-left:16px;color:var(--grey-700);line-height:1.8;">
+        <li><strong>§5 Filter Architecture:</strong> Grade D added to the Condition filter for laptops, desktops, and phones (confirmed in scope by Clinch IT).</li>
+        <li><strong>§8 Collection Rules:</strong> <code>grade-d</code> tag added to required tags taxonomy.</li>
+        <li><strong>§6a Metafields:</strong> condition_grade allowed values updated to include Grade D.</li>
+        <li><strong>§9 Grading Standard:</strong> Grade D open decision resolved — confirmed in scope. Grading guide page (Phase 6) to include Grade D when built.</li>
+      </ul>
+    </div>
+    <div style="margin-top:12px;background:var(--grey-100);border:1px solid var(--grey-300);border-radius:4px;padding:12px 16px;font-size:12px;">
+      <strong style="color:var(--black);display:block;margin-bottom:6px;">v2.1 Changelog</strong>
+      <ul style="padding-left:16px;color:var(--grey-700);line-height:1.8;">
+        <li><strong>§3 Utility Bar:</strong> Placeholder copy replaced with confirmed trust signals — "Free UK Delivery | 90-Day Warranty on Every Device | 14-Day Returns"</li>
+        <li><strong>§9 Grading Standard:</strong> Grade D added (confirmed from Clinch IT warranty document). Open decision added on whether Grade D is listed on Shopify storefront.</li>
+        <li><strong>§6a Metafields:</strong> warranty_months default value set to 3 (90 days confirmed).</li>
+        <li><strong>§10 Trust Architecture:</strong> Warranty, returns, and delivery trust badges updated from TBC to confirmed. Inferred warning updated to reflect partial confirmation.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Primer -->
+  <div class="section" id="primer">
+    <div class="section-header"><span class="section-num"></span><h2>How Shopify Organises and Displays Products — A Plain-English Primer</h2></div>
+
+    <p>This section is for anyone who hasn't worked inside Shopify before. It explains the four building blocks the rest of this document is built on — what they are, why they exist, and how they connect to each other. If you're already familiar with Shopify, skip ahead to Section 1.</p>
+
+    <h3>The Problem Shopify's Defaults Don't Solve</h3>
+    <p>Every Shopify product comes with a fixed set of standard fields: title, price, description, images, SKU, and stock level. For most products, that's enough. For refurbished tech, it isn't. A buyer choosing a laptop needs to know the RAM, storage, processor, battery health, and operating system before they'll buy. None of those fields exist in Shopify by default. The four tools below are how you solve that.</p>
+
+    <hr style="border:none;border-top:1px solid var(--grey-300);margin:28px 0;">
+
+    <h3>1. Metafields — Structured Product Data</h3>
+    <p>A metafield is a custom data field you attach to a product. Think of it as adding an extra column to a spreadsheet that Shopify doesn't include by default.</p>
+    <p>For a refurbished MacBook Air M1, you would create metafields for <code>ram_gb</code>, <code>storage_gb</code>, <code>battery_health_pct</code>, <code>operating_system</code>, and so on. Each metafield has a type — integer, text, boolean (yes/no), decimal — which determines what kind of value it can hold and how Shopify can use it.</p>
+    <p>Metafields are set up once as <strong>definitions</strong> (the field template), then filled in per product (the value). Once defined, they appear in the product editor so whoever is entering stock can fill them in on intake.</p>
+
+    <div class="callout callout-note">
+      <strong>Where to set them up:</strong> Shopify admin &rarr; Settings &rarr; Custom data &rarr; Metafields &rarr; Products &rarr; Add definition. Name the field, choose its type, and save. It will then appear on every product page in the Metafields section.
+    </div>
+
+    <h3>2. Tags — Simple Labels for Routing</h3>
+    <p>A tag is a plain text label applied to a product. Unlike metafields, tags have no type or structure — they're just words. <code>brand-apple</code>, <code>gaming</code>, <code>grade-a</code>, <code>os-windows</code>.</p>
+    <p>Tags are best used for routing products into collections and for internal filtering in the Shopify admin. They are fast to apply (including in bulk) and easy to query with collection rules.</p>
+    <p>The important distinction from metafields: tags are blunt instruments. They tell Shopify a product belongs to a group. Metafields tell Shopify specific facts about a product. You use both — tags to sort products into the right places, metafields to display the right information and power the right filters.</p>
+
+    <div class="callout callout-note">
+      <strong>Where to set them up:</strong> Tags are added directly on the product page in the Tags field. No prior setup required. Consistency matters — <code>brand-apple</code> and <code>Brand Apple</code> are different tags to Shopify, so agree the format before listing stock.
+    </div>
+
+    <h3>3. Automated Collections — Rules-Based Product Grouping</h3>
+    <p>A collection is a group of products. Shopify has two types: manual (you add products by hand) and automated (Shopify adds products automatically when they match rules you define).</p>
+    <p>For a refurb store with high product turnover, automated collections are essential. You define the rule once — "Product type is Laptop AND vendor is Apple" — and every Apple laptop added to Shopify appears in the Apple Laptops collection automatically, and disappears when it sells. No manual maintenance.</p>
+    <p>Collection rules can use standard product fields (vendor, type, price, tags) as well as metafields. Using a metafield as a collection condition requires one extra step: enabling the "Smart collections" option on that metafield definition before it becomes available as a rule.</p>
+
+    <div class="callout callout-note">
+      <strong>Enabling a metafield for collection rules:</strong> Shopify admin &rarr; Settings &rarr; Custom data &rarr; Metafields &rarr; Products &rarr; click the metafield definition &rarr; Options section &rarr; enable <strong>Smart collections</strong> &rarr; Save. The metafield then appears as a condition option when creating or editing an automated collection.
+    </div>
+
+    <div class="callout callout-warn">
+      <strong>Tags vs metafields for collection rules:</strong> Both work. Tags are simpler to set up and faster to apply in bulk. Metafields are more structured and less prone to typos. The recommendation in this document is to use both — tags for broad routing (brand, type, grade), metafields for anything that needs precision (condition grade used as a collection condition and a filter and a display field).
+    </div>
+
+    <h3>4. Search &amp; Discovery — Connecting Data to Filters</h3>
+    <p>Search &amp; Discovery is a free Shopify app that powers the filter panel customers see on collection pages — the checkboxes and price sliders that let someone narrow "All Laptops" down to "Apple, 16GB RAM, under £400, Grade A".</p>
+    <p>By default it only filters by price and availability. To add filters for RAM, storage, condition grade, and everything else, you connect it to your metafield definitions. Each metafield you want to use as a filter needs two things: storefront access enabled on the definition, and a filter entry created in the app.</p>
+
+    <div class="callout callout-note">
+      <strong>Step 1 — Enable storefront access on the metafield:</strong> Shopify admin &rarr; Settings &rarr; Custom data &rarr; Metafields &rarr; Products &rarr; click the definition &rarr; Options section &rarr; check <strong>Storefront</strong> &rarr; Save.<br><br>
+      <strong>Step 2 — Add it as a filter:</strong> Shopify admin &rarr; Apps &rarr; Search &amp; Discovery &rarr; Filters &rarr; Add filter &rarr; select your metafield definition as the source &rarr; set the display label (what customers see) &rarr; Save.
+    </div>
+
+    <div class="callout callout-note">
+      <strong>Default Shopify filter behaviour:</strong> Price renders as a range slider natively. All other metafield filters render as checkbox lists — one checkbox per discrete stored value. This means you cannot use a raw integer metafield (like battery health percentage) as a range-based filter in default Shopify. For range-style filters such as battery health bands (90%+, 80–90%) and screen size bands (13–14"), this build uses tags applied on intake instead. The raw metafield value is still stored and shown on the product page — it just doesn't drive the filter UI directly.
+    </div>
+
+    <h3>How It All Joins Up — A Worked Example</h3>
+    <p>Here is the complete journey for a single unit of stock: an Apple MacBook Air M1, 16GB RAM, 256GB SSD, Grade A, battery health 91%.</p>
+
+    <div class="table-wrap"><table>
+      <thead><tr><th>Step</th><th>Action</th><th>Where</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>1. Create product</td>
+          <td>Add the MacBook Air as a new product. Set vendor to Apple, product type to Laptop.</td>
+          <td>Shopify admin &rarr; Products &rarr; Add product</td>
+          <td>Product exists in Shopify.</td>
+        </tr>
+        <tr>
+          <td>2. Add tags</td>
+          <td>Apply tags: <code>brand-apple</code>, <code>grade-a</code>, <code>os-macos</code></td>
+          <td>Product page &rarr; Tags field</td>
+          <td>Product is routed into the Apple Laptops collection and Grade A collection automatically.</td>
+        </tr>
+        <tr>
+          <td>3. Fill in metafields</td>
+          <td>Set <code>ram_gb</code> = 16, <code>storage_gb</code> = 256, <code>condition_grade</code> = Grade A, <code>battery_health_pct</code> = 91, <code>operating_system</code> = macOS, <code>condition_notes</code> = "Light marks on base. Full working order. Charger included."</td>
+          <td>Product page &rarr; Metafields section</td>
+          <td>Structured data is stored against this unit.</td>
+        </tr>
+        <tr>
+          <td>4. Customer browses</td>
+          <td>Customer visits /collections/apple-laptops and sets filters: RAM = 16GB, Condition = Grade A.</td>
+          <td>Storefront filter panel</td>
+          <td>Search &amp; Discovery reads the metafield values and surfaces only matching products. This MacBook appears.</td>
+        </tr>
+        <tr>
+          <td>5. Customer views product</td>
+          <td>Customer clicks through to the product page.</td>
+          <td>Product page</td>
+          <td>The theme reads the metafield values and displays them in the spec table: RAM, storage, OS, battery health, condition notes.</td>
+        </tr>
+        <tr>
+          <td>6. Product sells</td>
+          <td>Customer buys. Shopify sets inventory to 0.</td>
+          <td>Automatic</td>
+          <td>Product is removed from all collections and the eBay sync sets the listing quantity to 0.</td>
+        </tr>
+      </tbody>
+    </table></div>
+
+  </div>
+
+  <!-- 1 -->
+  <div class="section" id="context">
+    <div class="section-header"><span class="section-num">01</span><h2>Strategic Context</h2></div>
+    <p>The store sells refurbished laptops, desktops, phones, tablets, and peripherals. Shopify is the single source of truth. All product data, inventory, pricing, and condition grading is managed in Shopify. eBay is a downstream channel managed via the selected third-party sync app.</p>
+    <p>The architecture serves three distinct buyer modes, all of which must work on mobile and desktop.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Mode</th><th>Intent</th><th>Primary path</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Browse by category</strong></td><td>"I want a MacBook, show me what you have"</td><td>Nav &rarr; hub page &rarr; brand collection</td></tr>
+        <tr><td><strong>Browse by spec</strong></td><td>"I need 16GB RAM, under &pound;400, any brand"</td><td>Nav &rarr; all laptops &rarr; filter panel</td></tr>
+        <tr><td><strong>Search by model</strong></td><td>"HP EliteBook 840 G8"</td><td>Search bar &rarr; product page</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- 2 -->
+  <div class="section" id="urls">
+    <div class="section-header"><span class="section-num">02</span><h2>URL &amp; Collection Hierarchy</h2></div>
+    <div class="callout callout-note"><strong>Shopify limitation.</strong> Shopify does not support true nested collections. Parent hub pages (Laptops, Desktops etc.) are implemented as custom landing pages, not standard collections. Child collections use automated rules.</div>
+
+    <div class="legend">
+      <span>Key:</span>
+      <span class="legend-item"><span class="badge badge-yes">confirmed</span> Clinch eBay category</span>
+      <span class="legend-item"><span class="badge badge-confirm">confirm</span> Needs confirming with Clinch</span>
+    </div>
+
+    <div class="url-tree">
+      <div class="url-group">
+        <span class="url-parent">/</span><span class="url-note">Homepage</span><br>
+        <span class="url-parent">/collections/all</span><span class="url-note">Full catalogue — hidden from nav</span>
+      </div>
+      <div class="url-group">
+        <span class="url-parent">/collections/laptops</span><span class="url-note">Hub — custom template</span>
+        <span class="url-child">/collections/apple-laptops &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/acer-laptops &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/asus-laptops &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/dell-laptops &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/hp-laptops &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/lenovo-laptops &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/microsoft-laptops &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/gaming-laptops &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/laptops-other &nbsp;<span class="badge badge-yes">confirmed</span></span>
+      </div>
+      <div class="url-group">
+        <span class="url-parent">/collections/desktops</span><span class="url-note">Hub — custom template</span>
+        <span class="url-child">/collections/apple-macs &nbsp;<span class="badge badge-yes">confirmed — Apple Macs All in One</span></span>
+        <span class="url-child">/collections/dell-desktops &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/hp-desktops &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/lenovo-desktops &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/desktop-computers &nbsp;<span class="badge badge-yes">confirmed</span></span>
+      </div>
+      <div class="url-group">
+        <span class="url-parent">/collections/phones</span><span class="url-note">Hub — custom template</span>
+        <span class="url-child">/collections/apple-iphones &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/android-phones &nbsp;<span class="badge badge-confirm">future — not current Clinch stock</span></span>
+      </div>
+
+      <div class="url-group">
+        <span class="url-parent">/collections/tablets</span><span class="url-note">Hub — custom template <span class="badge badge-yes">confirmed v2.3</span></span>
+        <span class="url-child">/collections/apple-ipads &nbsp;<span class="badge badge-yes">confirmed</span></span>
+      </div>
+
+      <div class="url-group">
+        <span class="url-parent">/collections/accessories</span><span class="url-note">Hub — custom template</span>
+        <span class="url-child">/collections/docking-stations &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/hard-drives &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/ssds &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/monitors &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/headphones-speakers &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/cameras &nbsp;<span class="badge badge-yes">confirmed</span></span>
+        <span class="url-child">/collections/networking &nbsp;<span class="badge badge-yes">confirmed — Switches/Firewalls/AP/Routers</span></span>
+        <span class="url-child">/collections/toner-ink &nbsp;<span class="badge badge-yes">confirmed</span></span>
+      </div>
+      <div class="url-group">
+        <span class="url-parent">/pages/grading-guide</span><span class="url-note">Trust + SEO page</span><br>
+        <span class="url-parent">/pages/warranty</span><span class="url-note">Trust page</span>
+      </div>
+    </div>
+
+    <div class="callout callout-note"><strong>Phones: Apple iPhones only at launch.</strong> Clinch currently stocks Apple mobile phones only. The hub page (/collections/phones) and Apple iPhones collection (/collections/apple-iphones) are both created now. Android phones collection is scaffolded in the architecture but not activated until stock warrants it.</div>
+    <div class="callout callout-note"><strong>Tablets: Apple iPads only (confirmed v2.3).</strong> Tablets were excluded from the original architecture (v2.0) but are confirmed back in scope. Clinch currently stocks Apple iPads only — confirmed live examples include iPad Air 2 64GB and iPad Mini 6th Gen 64GB +5G. The hub page (/collections/tablets) and Apple iPads collection (/collections/apple-ipads) are both created now. Other tablet brands (Samsung, Lenovo, etc.) can be scaffolded the same way as Android phones if stock is added later.</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="section" id="nav">
+    <div class="section-header"><span class="section-num">03</span><h2>Navigation Structure</h2></div>
+
+    <h3>Utility Bar</h3>
+    <div style="background:var(--black);color:var(--white);padding:8px 16px;border-radius:4px;font-size:12px;margin-bottom:20px;text-align:center;">
+      Free UK Delivery &nbsp;|&nbsp; 90-Day Warranty on Every Device &nbsp;|&nbsp; 14-Day Returns
+    </div>
+    <div class="callout callout-note"><strong>Confirmed copy (v2.1).</strong> All three utility bar messages are now confirmed from Clinch IT policy: free DPD Local delivery on all UK orders; 90-day RTB warranty covering parts and labour; 14-day statutory returns window. Apply this copy when implementing the utility bar in Phase 2.</div>
+
+    <h3>Primary Navigation</h3>
+    <div style="border:1px solid var(--grey-300);border-radius:4px;padding:10px 16px;font-size:13px;display:flex;gap:20px;color:var(--grey-700);margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+      <span style="font-weight:600;color:var(--black)">Laptops v</span>
+      <span>Desktops v</span>
+      <span>Phones v</span>
+      <span>Tablets v</span>
+      <span>Accessories v</span>
+      <span>Deals</span>
+      <span style="margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--grey-500);font-size:12px;">&#128269; Search</span>
+    </div>
+
+    <div class="callout callout-note"><strong>Contextual navigation.</strong> Mega-menus include a Browse by Budget column — price-filtered views of existing collections, not separate collection pages. These are editorial overlays on confirmed stock, not assumptions about new categories.</div>
+
+    <h3>Laptops Mega-Menu</h3>
+    <div class="megamenu-demo">
+      <div class="megamenu-header">Laptops</div>
+      <div class="megamenu-body">
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Shop by Brand</div>
+          <a href="#">Apple MacBooks</a>
+          <a href="#">Acer Laptops</a>
+          <a href="#">ASUS Laptops</a>
+          <a href="#">Dell Laptops</a>
+          <a href="#">HP Laptops</a>
+          <a href="#">Lenovo Laptops</a>
+          <a href="#">Microsoft Laptops</a>
+          <a href="#" class="see-all">All Laptops &rarr;</a>
+        </div>
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Shop by Type</div>
+          <a href="#">Gaming Laptops</a>
+        </div>
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Browse by Budget</div>
+          <a href="#" class="contextual">Under &pound;200</a>
+          <a href="#" class="contextual">&pound;200 &ndash; &pound;400</a>
+          <a href="#" class="contextual">&pound;400 &ndash; &pound;600</a>
+          <a href="#" class="contextual">&pound;600+</a>
+        </div>
+      </div>
+    </div>
+    <p class="context-note">Italicised budget links are price-filtered views of /collections/laptops, not separate collections.</p>
+
+    <h3>Desktops Mega-Menu</h3>
+    <div class="megamenu-demo">
+      <div class="megamenu-header">Desktops</div>
+      <div class="megamenu-body">
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Shop by Brand</div>
+          <a href="#">Apple Macs</a>
+          <a href="#">Dell Desktops</a>
+          <a href="#">HP Desktops</a>
+          <a href="#">Lenovo Desktops</a>
+          <a href="#" class="see-all">All Desktops &rarr;</a>
+        </div>
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Shop by Type</div>
+          <a href="#">All-in-One</a>
+          <a href="#">Tower / Desktop</a>
+        </div>
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Browse by Budget</div>
+          <a href="#" class="contextual">Under &pound;200</a>
+          <a href="#" class="contextual">&pound;200 &ndash; &pound;400</a>
+          <a href="#" class="contextual">&pound;400 &ndash; &pound;600</a>
+          <a href="#" class="contextual">&pound;600 &ndash; &pound;1,000</a>
+          <a href="#" class="contextual">&pound;1,000+</a>
+        </div>
+      </div>
+    </div>
+
+    <h3>Phones Mega-Menu</h3>
+    <div class="megamenu-demo">
+      <div class="megamenu-header">Phones</div>
+      <div class="megamenu-body">
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Shop by Brand</div>
+          <a href="#">Apple iPhones</a>
+          <a href="#" class="see-all">All Phones &rarr;</a>
+        </div>
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Browse by Budget</div>
+          <a href="#" class="contextual">Under &pound;200</a>
+          <a href="#" class="contextual">&pound;200 &ndash; &pound;400</a>
+          <a href="#" class="contextual">&pound;400+</a>
+        </div>
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Good to Know</div>
+          <a href="#">Grading Guide</a>
+          <a href="#">Warranty Info</a>
+        </div>
+      </div>
+    </div>
+    <p class="context-note">Brand column expands as new phone brands are added to stock.</p>
+
+    <h3>Tablets Mega-Menu <span class="badge badge-yes" style="font-size:11px;">confirmed v2.3</span></h3>
+    <div class="megamenu-demo">
+      <div class="megamenu-header">Tablets</div>
+      <div class="megamenu-body">
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Shop by Brand</div>
+          <a href="#">Apple iPads</a>
+          <a href="#" class="see-all">All Tablets &rarr;</a>
+        </div>
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Browse by Budget</div>
+          <a href="#" class="contextual">Under &pound;100</a>
+          <a href="#" class="contextual">&pound;100 &ndash; &pound;250</a>
+          <a href="#" class="contextual">&pound;250+</a>
+        </div>
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Good to Know</div>
+          <a href="#">Grading Guide</a>
+          <a href="#">Warranty Info</a>
+        </div>
+      </div>
+    </div>
+    <p class="context-note">Budget bands set against current confirmed stock (£49–£279). Brand column expands as new tablet brands are added to stock.</p>
+
+    <h3>Accessories Mega-Menu</h3>
+    <div class="megamenu-demo">
+      <div class="megamenu-header">Accessories</div>
+      <div class="megamenu-body">
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Peripherals</div>
+          <a href="#">Docking Stations</a>
+          <a href="#">Monitors</a>
+          <a href="#">Headphones &amp; Speakers</a>
+          <a href="#">Cameras</a>
+        </div>
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Storage</div>
+          <a href="#">Hard Drives</a>
+          <a href="#">SSDs</a>
+        </div>
+        <div class="megamenu-col">
+          <div class="megamenu-col-label">Business / IT</div>
+          <a href="#">Networking</a>
+          <a href="#">Toner &amp; Ink</a>
+        </div>
+      </div>
+    </div>
+
+    <h3>Footer Navigation</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Shop</th><th>Info</th><th>Support</th></tr></thead>
+      <tbody>
+        <tr><td>Laptops</td><td>About Clinch IT</td><td>Contact Us</td></tr>
+        <tr><td>Desktops</td><td>Grading Guide</td><td>Returns Policy</td></tr>
+        <tr><td>Phones</td><td>Warranty</td><td>Shipping Info</td></tr>
+        <tr><td>Tablets</td><td>Blog</td><td>eBay Store &rarr;</td></tr>
+        <tr><td>Accessories</td><td></td><td></td></tr>
+      </tbody>
+    </table></div>
+    <h4>Footer Bottom Bar</h4>
+    <p>Below the main footer columns, full width:</p>
+    <ul class="bullets">
+      <li><strong>Email newsletter signup</strong> — single field + subscribe CTA. "Get notified when new stock lands."</li>
+      <li><strong>Terms &amp; Conditions</strong> — links to /pages/terms</li>
+      <li><strong>Privacy Policy</strong> — links to /pages/privacy-policy</li>
+      <li>Copyright line</li>
+    </ul>
+  </div>
+
+  <!-- 4 -->
+  <div class="section" id="collections">
+    <div class="section-header"><span class="section-num">04</span><h2>Collection Page Architecture</h2></div>
+
+    <h3>4a. Hub / Parent Category Pages</h3>
+    <p>e.g. <code>/collections/laptops</code> &mdash; custom template, not a standard Shopify collection. Renders:</p>
+    <ul class="bullets">
+      <li><strong>Hero band</strong> &mdash; headline + trust badges (warranty, returns, grading)</li>
+      <li><strong>Shop by brand</strong> &mdash; card grid of confirmed brand sub-collections</li>
+      <li><strong>Price-range entry points</strong> &mdash; pill buttons linking to filtered views of the full collection</li>
+      <li><strong>Newly listed</strong> &mdash; live product feed, 4&ndash;8 units</li>
+      <li><strong>SEO copy block</strong> &mdash; below the fold</li>
+    </ul>
+
+    <h3>4b. Standard Collection Pages</h3>
+    <p>e.g. <code>/collections/apple-laptops</code> &mdash; filter sidebar (desktop) / filter drawer (mobile) + product grid.</p>
+    <h4>Above the grid</h4>
+    <ul class="bullets">
+      <li>Collection title + live product count</li>
+      <li>Active filter pills &mdash; dismissible</li>
+      <li>Sort: Newest / Price low&ndash;high / Price high&ndash;low / Grade A first</li>
+    </ul>
+    <h4>Product Card Anatomy</h4>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Element</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Image</td><td>Real unit photo, square crop</td></tr>
+        <tr><td>Condition badge</td><td>Grade A (green) / Grade B (amber) / Grade C (red)</td></tr>
+        <tr><td>Title</td><td>Brand + Model + Key Spec &mdash; e.g. "MacBook Air M1 &middot; 16GB &middot; 256GB"</td></tr>
+        <tr><td>Price</td><td>Prominent; struck-through RRP where available</td></tr>
+        <tr><td>Battery health</td><td>Displayed where captured &mdash; laptops and phones</td></tr>
+        <tr><td>Warranty badge</td><td>"12-Month Warranty" inline</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- 5 -->
+  <div class="section" id="filters">
+    <div class="section-header"><span class="section-num">05</span><h2>Filter Architecture</h2></div>
+    <p>Implemented via the <strong>Shopify Search &amp; Discovery app</strong> (free, no third-party filter app). This build targets default Shopify UI behaviour throughout.</p>
+
+    <div class="callout callout-note">
+      <strong>Default Shopify filter behaviour.</strong> Price is a native slider. Metafield filters render as checkbox lists — one checkbox per discrete value. This means range-based filters (battery health bands, screen size bands) cannot be driven by raw integer or decimal metafields in default Shopify. Instead, these are handled via tags applied on intake (e.g. <code>battery-90-plus</code>, <code>screen-13-14</code>). The underlying metafield values are still stored and displayed on the product page — they just don't drive the filter UI.
+    </div>
+
+    <h3>Laptops</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Filter Group</th><th>Source</th><th>UI Type</th><th>Values</th></tr></thead>
+      <tbody>
+        <tr><td>Brand</td><td>Product vendor</td><td>Checkbox list</td><td>Acer, Apple, ASUS, Dell, HP, Lenovo, Microsoft, Other</td></tr>
+        <tr><td>Condition</td><td>Metafield: <code>condition_grade</code></td><td>Checkbox list</td><td>Grade A, Grade B, Grade C, Grade D</td></tr>
+        <tr><td>Price</td><td>Native Shopify</td><td>Range slider</td><td>&pound;0 &ndash; &pound;1,500+</td></tr>
+        <tr><td>RAM</td><td>Metafield: <code>ram_gb</code></td><td>Checkbox list</td><td>4GB, 8GB, 16GB, 32GB, 64GB</td></tr>
+        <tr><td>Storage</td><td>Metafield: <code>storage_gb</code></td><td>Checkbox list</td><td>128GB, 256GB, 512GB, 1TB, 2TB</td></tr>
+        <tr><td>Screen Size</td><td>Tag</td><td>Checkbox list</td><td>11&ndash;12", 13&ndash;14", 15&ndash;16", 17"+" &mdash; applied via tags on intake</td></tr>
+        <tr><td>Processor Brand</td><td>Metafield: <code>processor_brand</code></td><td>Checkbox list</td><td>Intel, AMD, Apple Silicon</td></tr>
+        <tr><td>Processor</td><td>Metafield: <code>processor_series</code></td><td>Checkbox list</td><td>Core i3, i5, i7, i9 &middot; Ryzen 3, 5, 7, 9 &middot; M1, M2, M3, M4</td></tr>
+        <tr><td>Operating System</td><td>Metafield: <code>operating_system</code></td><td>Checkbox list</td><td>Windows 11, Windows 10, macOS, No OS</td></tr>
+        <tr><td>Graphics</td><td>Metafield: <code>gpu_type</code></td><td>Checkbox list</td><td>Integrated, Dedicated</td></tr>
+        <tr><td>Battery Health</td><td>Tag</td><td>Checkbox list</td><td>90%+, 80&ndash;90%, 70&ndash;80%, 60&ndash;70%, 50&ndash;60% &mdash; applied via tags on intake <span class="badge badge-confirm">bands TBC with Clinch</span></td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Desktops</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Filter Group</th><th>Source</th><th>UI Type</th><th>Values</th></tr></thead>
+      <tbody>
+        <tr><td>Brand</td><td>Product vendor</td><td>Checkbox list</td><td>Apple, Dell, HP, Lenovo</td></tr>
+        <tr><td>Type</td><td>Metafield: <code>form_factor</code></td><td>Checkbox list</td><td>All-in-One, Tower / Desktop</td></tr>
+        <tr><td>Condition</td><td>Metafield: <code>condition_grade</code></td><td>Checkbox list</td><td>Grade A, Grade B, Grade C, Grade D</td></tr>
+        <tr><td>Price</td><td>Native Shopify</td><td>Range slider</td><td>&pound;0 &ndash; &pound;1,000+</td></tr>
+        <tr><td>RAM</td><td>Metafield: <code>ram_gb</code></td><td>Checkbox list</td><td>8GB, 16GB, 32GB, 64GB</td></tr>
+        <tr><td>Storage</td><td>Metafield: <code>storage_gb</code></td><td>Checkbox list</td><td>256GB, 512GB, 1TB, 2TB+</td></tr>
+        <tr><td>Processor</td><td>Metafield: <code>processor_series</code></td><td>Checkbox list</td><td>Intel Core i3/i5/i7/i9, AMD Ryzen, Apple Silicon</td></tr>
+        <tr><td>Operating System</td><td>Metafield: <code>operating_system</code></td><td>Checkbox list</td><td>Windows 11, Windows 10, macOS, No OS</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Phones</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Filter Group</th><th>Source</th><th>UI Type</th><th>Values</th></tr></thead>
+      <tbody>
+        <tr><td>Condition</td><td>Metafield: <code>condition_grade</code></td><td>Checkbox list</td><td>Grade A, Grade B, Grade C, Grade D</td></tr>
+        <tr><td>Price</td><td>Native Shopify</td><td>Range slider</td><td>&mdash;</td></tr>
+        <tr><td>Storage</td><td>Metafield: <code>storage_gb</code></td><td>Checkbox list</td><td>64GB, 128GB, 256GB, 512GB</td></tr>
+        <tr><td>Network</td><td>Metafield: <code>network_lock</code></td><td>Checkbox list</td><td>Unlocked, EE, O2, Vodafone, Three</td></tr>
+        <tr><td>Battery Health</td><td>Tag</td><td>Checkbox list</td><td>90%+, 80&ndash;90%, 70&ndash;80%, 60&ndash;70%, 50&ndash;60% &mdash; applied via tags on intake <span class="badge badge-confirm">bands TBC with Clinch</span></td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout callout-note">Clinch currently stocks Apple iPhones only. Brand and model filters should be activated as additional phone brands are added.</div>
+
+    <h3>Tablets <span class="badge badge-yes" style="font-size:11px;">confirmed v2.3</span></h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Filter Group</th><th>Source</th><th>UI Type</th><th>Values</th></tr></thead>
+      <tbody>
+        <tr><td>Condition</td><td>Metafield: <code>condition_grade</code></td><td>Checkbox list</td><td>Grade A, Grade B, Grade C, Grade D</td></tr>
+        <tr><td>Price</td><td>Native Shopify</td><td>Range slider</td><td>&mdash;</td></tr>
+        <tr><td>Storage</td><td>Metafield: <code>storage_gb</code></td><td>Checkbox list</td><td>64GB, 128GB, 256GB, 512GB</td></tr>
+        <tr><td>Screen Size</td><td>Metafield: <code>screen_size_inches</code></td><td>Checkbox list</td><td>e.g. 8.3", 9.7", 10.9", 11", 12.9" &mdash; values reflect actual stock as it's added</td></tr>
+        <tr><td>Connectivity</td><td>Metafield: <code>network_lock</code></td><td>Checkbox list</td><td>Wi-Fi only, Wi-Fi + Cellular &mdash; reuses phone network_lock metafield, see §6e</td></tr>
+        <tr><td>Battery Health</td><td>Tag</td><td>Checkbox list</td><td>90%+, 80&ndash;90%, 70&ndash;80%, 60&ndash;70%, 50&ndash;60% &mdash; applied via tags on intake</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout callout-note">Clinch currently stocks Apple iPads only (2 confirmed SKUs at launch — iPad Air 2 64GB, iPad Mini 6th Gen 64GB +5G). Brand and model filters should be activated as additional tablet brands are added. Screen size filter values will populate naturally from stock as it's added — no fixed band list needed given the small initial range.</div>
+
+    <h3>Accessories</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Filter Group</th><th>Source</th><th>UI Type</th><th>Values</th></tr></thead>
+      <tbody>
+        <tr><td>Type</td><td>Product type</td><td>Checkbox list</td><td>Docking Station, Monitor, Hard Drive, SSD, Headphones, Speakers, Camera, Networking, Toner &amp; Ink</td></tr>
+        <tr><td>Condition</td><td>Metafield: <code>condition_grade</code></td><td>Checkbox list</td><td>Grade A, Grade B, Grade C, New</td></tr>
+        <tr><td>Price</td><td>Native Shopify</td><td>Range slider</td><td>&mdash;</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Implementation Notes</h3>
+    <ul class="bullets">
+      <li>This build uses default Shopify + Search &amp; Discovery only. No third-party filter app.</li>
+      <li>All filterable metafields must have <strong>Storefront</strong> enabled in Settings &rarr; Custom data &rarr; Metafields &rarr; Products before they can be added as filters in Search &amp; Discovery</li>
+      <li>Price is a native Shopify filter and renders as a slider automatically</li>
+      <li>Metafield filters render as checkbox lists in default Shopify — one checkbox per discrete stored value</li>
+      <li>Battery health and screen size use tags for filtering (bucket values set on intake) rather than raw metafield values, because range-based checkbox filters cannot be driven by integer/decimal metafields in default Shopify</li>
+      <li>Mobile: filters open as a full-screen drawer with "Apply" CTA at bottom</li>
+      <li>"Clear all" appears whenever any filter is active</li>
+      <li>Only enable filters with sufficient stock density at launch — add others as inventory grows</li>
+    </ul>
+  </div>
+
+  <!-- 6 -->
+  <div class="section" id="metafields">
+    <div class="section-header"><span class="section-num">06</span><h2>Product Metafield Schema</h2></div>
+    <p>All metafields use the <code>custom</code> namespace with <code>product</code> as owner type.</p>
+    <div class="legend">
+      <span class="legend-item"><span class="badge badge-model">model</span> Consistent across all units of the same model. Populate from a lookup table.</span>
+      <span class="legend-item"><span class="badge badge-unit">unit</span> Varies per device. Must be captured on intake.</span>
+    </div>
+
+    <h3>6a. Universal &mdash; All Product Types</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Key</th><th>Type</th><th>Storefront</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>condition_grade</code></td><td>Single line text</td><td><span class="badge badge-yes">Yes</span></td><td>Grade A / Grade B / Grade C / Grade D</td></tr>
+        <tr><td><code>condition_label</code></td><td>Single line text</td><td><span class="badge badge-yes">Yes</span></td><td>eBay-aligned: "Very Good &ndash; Refurbished" / "Good &ndash; Refurbished" / "Fair &ndash; Refurbished". Used by sync app and displayed on product page.</td></tr>
+        <tr><td><code>condition_notes</code></td><td>Multi-line text</td><td><span class="badge badge-yes">Yes</span></td><td>Free-text cosmetic notes &mdash; confirmed format from Clinch eBay listings e.g. "Casing in good condition, some scuffs. Unboxed."</td></tr>
+        <tr><td><code>warranty_months</code></td><td>Integer</td><td><span class="badge badge-yes">Yes</span></td><td>Default value: <strong>3</strong> (90 days — confirmed v2.1). Set as metafield default so field is pre-populated on intake.</td></tr>
+        <tr><td><code>colour</code></td><td>Single line text</td><td><span class="badge badge-yes">Yes</span></td><td>Silver / Space Grey / Black &mdash; confirmed in Clinch eBay item specifics</td></tr>
+        <tr><td><code>charger_included</code></td><td>Boolean</td><td><span class="badge badge-yes">Yes</span></td><td>true / false &mdash; confirmed in Clinch eBay item specifics</td></tr>
+        <tr><td><code>serial_number</code></td><td>Single line text</td><td><span class="badge badge-no">No</span></td><td>Hidden from storefront. Ops only. Confirmed in Clinch listing descriptions.</td></tr>
+        <tr><td><code>images_additional</code></td><td>File list</td><td><span class="badge badge-yes">Yes</span></td><td>Real-unit condition photos beyond hero image</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>6b. Laptops</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Key</th><th>Type</th><th>Level</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>processor_brand</code></td><td>Single line text</td><td><span class="badge badge-model">model</span></td><td>Intel / AMD / Apple &mdash; confirmed in Clinch eBay item specifics</td></tr>
+        <tr><td><code>processor_series</code></td><td>Single line text</td><td><span class="badge badge-model">model</span></td><td>Core i7, Ryzen 5, M1, M2, M3 &mdash; confirmed in Clinch listing titles</td></tr>
+        <tr><td><code>processor_model</code></td><td>Single line text</td><td><span class="badge badge-model">model</span></td><td>e.g. i7-1165G7, M1 8 Core &mdash; confirmed in Clinch eBay item specifics</td></tr>
+        <tr><td><code>processor_cores</code></td><td>Integer</td><td><span class="badge badge-model">model</span></td><td>e.g. 8 &mdash; confirmed present in Clinch listing titles ("M1 8 Core")</td></tr>
+        <tr><td><code>ram_gb</code></td><td>Integer</td><td><span class="badge badge-unit">unit</span></td><td>4, 8, 16, 32, 64 &mdash; confirmed in Clinch eBay item specifics</td></tr>
+        <tr><td><code>storage_gb</code></td><td>Integer</td><td><span class="badge badge-unit">unit</span></td><td>128, 256, 512, 1024, 2048 &mdash; confirmed in Clinch eBay item specifics</td></tr>
+        <tr><td><code>storage_type</code></td><td>Single line text</td><td><span class="badge badge-model">model</span></td><td>SSD / HDD &mdash; confirmed in Clinch eBay item specifics</td></tr>
+        <tr><td><code>screen_size_inches</code></td><td>Decimal</td><td><span class="badge badge-model">model</span></td><td>e.g. 13.3 &mdash; confirmed in Clinch eBay item specifics</td></tr>
+        <tr><td><code>gpu_type</code></td><td>Single line text</td><td><span class="badge badge-model">model</span></td><td>Integrated / Dedicated &mdash; derivable from model spec</td></tr>
+        <tr><td><code>operating_system</code></td><td>Single line text</td><td><span class="badge badge-unit">unit</span></td><td>Windows 11 / Windows 10 / macOS / No OS &mdash; confirmed in Clinch listing titles</td></tr>
+        <tr><td><code>battery_health_pct</code></td><td>Integer</td><td><span class="badge badge-unit">unit</span></td><td>e.g. 85 &mdash; confirmed in Clinch listing descriptions</td></tr>
+        <tr><td><code>battery_cycles</code></td><td>Integer</td><td><span class="badge badge-unit">unit</span></td><td>e.g. 300 &mdash; confirmed in Clinch listing descriptions</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout callout-warn"><strong>Confirm with Clinch:</strong> Is OS always installed before listing? If yes, <code>operating_system</code> becomes model-level for Apple (always macOS) and is only unit-level for Windows machines.</div>
+
+    <h3>6c. Desktops</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Key</th><th>Type</th><th>Level</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>processor_brand</code></td><td>Single line text</td><td><span class="badge badge-model">model</span></td><td>Intel / AMD / Apple</td></tr>
+        <tr><td><code>processor_series</code></td><td>Single line text</td><td><span class="badge badge-model">model</span></td><td>e.g. Core i7, Ryzen 7, M2</td></tr>
+        <tr><td><code>processor_model</code></td><td>Single line text</td><td><span class="badge badge-model">model</span></td><td>e.g. i7-10700</td></tr>
+        <tr><td><code>ram_gb</code></td><td>Integer</td><td><span class="badge badge-unit">unit</span></td><td>8, 16, 32, 64</td></tr>
+        <tr><td><code>storage_gb</code></td><td>Integer</td><td><span class="badge badge-unit">unit</span></td><td>256, 512, 1024, 2048</td></tr>
+        <tr><td><code>storage_type</code></td><td>Single line text</td><td><span class="badge badge-model">model</span></td><td>SSD / HDD</td></tr>
+        <tr><td><code>gpu_type</code></td><td>Single line text</td><td><span class="badge badge-model">model</span></td><td>Integrated / Dedicated</td></tr>
+        <tr><td><code>operating_system</code></td><td>Single line text</td><td><span class="badge badge-unit">unit</span></td><td>Windows 11 / Windows 10 / macOS / No OS</td></tr>
+        <tr><td><code>form_factor</code></td><td>Single line text</td><td><span class="badge badge-model">model</span></td><td>Tower / All-in-One &mdash; confirmed via "Apple Macs All in One" and "Desktop Computers" categories</td></tr>
+        <tr><td><code>screen_size_inches</code></td><td>Decimal</td><td><span class="badge badge-model">model</span></td><td>All-in-One units only</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>6d. Phones</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Key</th><th>Type</th><th>Level</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>storage_gb</code></td><td>Integer</td><td><span class="badge badge-unit">unit</span></td><td>64, 128, 256, 512</td></tr>
+        <tr><td><code>network_lock</code></td><td>Single line text</td><td><span class="badge badge-unit">unit</span></td><td>Unlocked / EE / O2 / Vodafone / Three</td></tr>
+        <tr><td><code>battery_health_pct</code></td><td>Integer</td><td><span class="badge badge-unit">unit</span></td><td>e.g. 91</td></tr>
+        <tr><td><code>battery_cycles</code></td><td>Integer</td><td><span class="badge badge-unit">unit</span></td><td>Capture if available from diagnostics</td></tr>
+        <tr><td><code>imei_clean</code></td><td>Boolean</td><td><span class="badge badge-unit">unit</span></td><td>true = clean IMEI check passed</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout callout-warn"><strong>Phone metafields are intentionally minimal.</strong> Sub-brand, model family, RAM, screen size, and 5G fields are omitted &mdash; Clinch's phone inventory structure is unconfirmed. Extend once stock breakdown is known.</div>
+
+    <h3>6e. Tablets <span class="badge badge-yes" style="font-size:11px;">confirmed v2.3</span></h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Key</th><th>Type</th><th>Level</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>storage_gb</code></td><td>Integer</td><td><span class="badge badge-unit">unit</span></td><td>64, 128, 256, 512 — shared with phones/laptops</td></tr>
+        <tr><td><code>screen_size_inches</code></td><td>Decimal</td><td><span class="badge badge-unit">unit</span></td><td>e.g. 9.7, 10.9 — shared with laptops</td></tr>
+        <tr><td><code>network_lock</code></td><td>Single line text</td><td><span class="badge badge-unit">unit</span></td><td>Wi-Fi only / Wi-Fi + Cellular — shared metafield with phones, different allowed values for tablets</td></tr>
+        <tr><td><code>battery_health_pct</code></td><td>Integer</td><td><span class="badge badge-unit">unit</span></td><td>e.g. 88</td></tr>
+        <tr><td><code>battery_cycles</code></td><td>Integer</td><td><span class="badge badge-unit">unit</span></td><td>Capture if available from diagnostics</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout callout-note"><strong>Tablet metafields reuse existing definitions.</strong> No new metafield definitions are required — tablets use storage_gb, screen_size_inches, network_lock, battery_health_pct, and battery_cycles, all already defined for laptops/phones. Only the <em>allowed values</em> for network_lock differ by product type (phones: carrier names; tablets: Wi-Fi only / Wi-Fi + Cellular). condition_grade, condition_notes, colour, charger_included, warranty_months, and serial_number from §6a Universal apply as normal.</div>
+
+    <h3>6f. Metafield &rarr; Filter Mapping</h3>
+    <p>Set each as storefront-accessible in Shopify admin, then add as filter values in Search &amp; Discovery. Battery health and screen size bands are tag-driven, not metafield-driven — see tag taxonomy in Section 8.</p>
+    <ul class="mapping-list">
+      <li><span class="map-key">custom.condition_grade</span><span class="map-arrow">&rarr;</span><span class="map-val">"Condition"</span><span class="map-scope">All types</span></li>
+      <li><span class="map-key">custom.ram_gb</span><span class="map-arrow">&rarr;</span><span class="map-val">"RAM"</span><span class="map-scope">Laptops, Desktops</span></li>
+      <li><span class="map-key">custom.storage_gb</span><span class="map-arrow">&rarr;</span><span class="map-val">"Storage"</span><span class="map-scope">Laptops, Desktops, Phones, Tablets</span></li>
+      <li><span class="map-key">custom.processor_brand</span><span class="map-arrow">&rarr;</span><span class="map-val">"Processor Brand"</span><span class="map-scope">Laptops, Desktops</span></li>
+      <li><span class="map-key">custom.processor_series</span><span class="map-arrow">&rarr;</span><span class="map-val">"Processor"</span><span class="map-scope">Laptops, Desktops</span></li>
+      <li><span class="map-key">custom.operating_system</span><span class="map-arrow">&rarr;</span><span class="map-val">"Operating System"</span><span class="map-scope">Laptops, Desktops</span></li>
+      <li><span class="map-key">custom.gpu_type</span><span class="map-arrow">&rarr;</span><span class="map-val">"Graphics"</span><span class="map-scope">Laptops, Desktops</span></li>
+      <li><span class="map-key">custom.form_factor</span><span class="map-arrow">&rarr;</span><span class="map-val">"Type"</span><span class="map-scope">Desktops</span></li>
+      <li><span class="map-key">custom.network_lock</span><span class="map-arrow">&rarr;</span><span class="map-val">"Network"</span><span class="map-scope">Phones</span></li>
+      <li><span class="map-key">custom.network_lock</span><span class="map-arrow">&rarr;</span><span class="map-val">"Connectivity"</span><span class="map-scope">Tablets — same metafield, different filter label</span></li>
+      <li><span class="map-key">custom.screen_size_inches</span><span class="map-arrow">&rarr;</span><span class="map-val">"Screen Size"</span><span class="map-scope">Tablets — direct metafield filter, not tag-based (small value range)</span></li>
+      <li><span class="map-key">Tag: screen-11-12 etc.</span><span class="map-arrow">&rarr;</span><span class="map-val">"Screen Size"</span><span class="map-scope">Laptops — tag-based</span></li>
+      <li><span class="map-key">Tag: battery-90-plus etc.</span><span class="map-arrow">&rarr;</span><span class="map-val">"Battery Health"</span><span class="map-scope">Laptops, Phones, Tablets — tag-based</span></li>
+    </ul>
+  </div>
+
+  <!-- 7 -->
+  <div class="section" id="variants">
+    <div class="section-header"><span class="section-num">07</span><h2>Product Variant Strategy</h2></div>
+    <p>Variants are for true buying choices only &mdash; things the customer selects at purchase. Spec and condition differences between units are separate products.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Scenario</th><th>Approach</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr><td>Same model, different colour, identical spec</td><td>Variants &check;</td><td>Genuine buyer choice</td></tr>
+        <tr><td>Same model, same condition, different storage &mdash; multiple units in stock simultaneously</td><td>Variants &check;</td><td>Genuine buyer choice</td></tr>
+        <tr><td>Same model, different RAM</td><td>Separate products</td><td>Different unit, different price</td></tr>
+        <tr><td>Same model, different condition grade</td><td>Separate products</td><td>Honest per-unit condition representation</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout callout-note"><strong>Default for refurb stock:</strong> Each physical unit = one product. Given shallow stock depth per SKU, variant complexity is rarely warranted.</div>
+  </div>
+
+  <!-- 8 -->
+  <div class="section" id="rules">
+    <div class="section-header"><span class="section-num">08</span><h2>Automated Collection Rules</h2></div>
+    <p>Shopify automated collection conditions populate brand and type collections without manual tagging on every product.</p>
+
+    <h4>/collections/apple-laptops</h4>
+    <pre><code>Product must match ALL:
+  Product type   =  Laptop
+  Product vendor =  Apple</code></pre>
+
+    <h4>/collections/gaming-laptops</h4>
+    <pre><code>Product must match ALL:
+  Product type  =  Laptop
+  Tag contains  =  gaming</code></pre>
+
+    <h4>/collections/apple-ipads</h4>
+    <pre><code>Product must match ALL:
+  Product type   =  Tablet
+  Product vendor =  Apple</code></pre>
+
+    <h4>/collections/grade-a</h4>
+    <pre><code>Product must match ALL:
+  Metafield custom.condition_grade  =  Grade A</code></pre>
+
+    <h3>Required Product Types</h3>
+    <div class="filter-pills">
+      <span class="filter-pill">Laptop</span><span class="filter-pill">Desktop</span><span class="filter-pill">Phone</span><span class="filter-pill">Tablet</span><span class="filter-pill">Docking Station</span><span class="filter-pill">Monitor</span><span class="filter-pill">Hard Drive</span><span class="filter-pill">SSD</span><span class="filter-pill">Headphones</span><span class="filter-pill">Camera</span><span class="filter-pill">Networking</span><span class="filter-pill">Toner &amp; Ink</span><span class="filter-pill">Accessory</span>
+    </div>
+    <div class="callout callout-note" style="margin-top:8px;"><strong>Tablet added (v2.3).</strong> Product type "Tablet" confirmed in scope. Apple iPads use this type with vendor "Apple" — see /collections/apple-ipads rule above.</div>
+
+    <h3>Required Tags</h3>
+    <div class="filter-pills">
+      <span class="filter-pill">brand-acer</span><span class="filter-pill">brand-apple</span><span class="filter-pill">brand-asus</span><span class="filter-pill">brand-dell</span><span class="filter-pill">brand-hp</span><span class="filter-pill">brand-lenovo</span><span class="filter-pill">brand-microsoft</span>
+    </div>
+    <div class="filter-pills" style="margin-top:6px">
+      <span class="filter-pill">grade-a</span><span class="filter-pill">grade-b</span><span class="filter-pill">grade-c</span><span class="filter-pill">grade-d</span>
+    </div>
+    <div class="filter-pills" style="margin-top:6px">
+      <span class="filter-pill">gaming</span><span class="filter-pill">all-in-one</span>
+    </div>
+    <div class="filter-pills" style="margin-top:6px">
+      <span class="filter-pill">os-windows</span><span class="filter-pill">os-macos</span><span class="filter-pill">os-none</span>
+    </div>
+    <div class="filter-pills" style="margin-top:6px">
+      <span class="filter-pill">unlocked</span><span class="filter-pill">network-ee</span><span class="filter-pill">network-o2</span><span class="filter-pill">network-vodafone</span><span class="filter-pill">network-three</span>
+    </div>
+    <div class="filter-pills" style="margin-top:6px">
+      <span class="filter-pill">connectivity-wifi</span><span class="filter-pill">connectivity-wifi-cellular</span>
+    </div>
+    <p style="font-size:12.5px;color:var(--grey-700);margin:4px 0 0;"><span class="badge badge-yes" style="font-size:11px;">v2.3</span> Tablet connectivity tags — applied based on the <code>network_lock</code> metafield value (Wi-Fi only / Wi-Fi + Cellular). Distinct from phone carrier-lock tags above, though both use the same underlying metafield.</p>
+
+    <h4>Battery Health Bands — Laptops, Phones &amp; Tablets</h4>
+    <p style="font-size:12.5px;color:var(--grey-700);margin-bottom:6px;">Applied on intake based on the measured <code>battery_health_pct</code> value. Used as the filter source for Battery Health in Search &amp; Discovery. <span class="badge badge-confirm">Exact band thresholds TBC with Clinch — starting floor of 50% is proposed, not confirmed.</span></p>
+    <div class="filter-pills">
+      <span class="filter-pill">battery-90-plus</span><span class="filter-pill">battery-80-90</span><span class="filter-pill">battery-70-80</span><span class="filter-pill">battery-60-70</span><span class="filter-pill">battery-50-60</span>
+    </div>
+
+    <h4>Screen Size Bands — Laptops</h4>
+    <p style="font-size:12.5px;color:var(--grey-700);margin-bottom:6px;">Applied on intake based on the <code>screen_size_inches</code> metafield value. Used as the filter source for Screen Size in Search &amp; Discovery.</p>
+    <div class="filter-pills">
+      <span class="filter-pill">screen-11-12</span><span class="filter-pill">screen-13-14</span><span class="filter-pill">screen-15-16</span><span class="filter-pill">screen-17-plus</span>
+    </div>
+  </div>
+
+  <!-- 9 -->
+  <div class="section" id="grading">
+    <div class="section-header"><span class="section-num">09</span><h2>Grading Standard</h2></div>
+    <p>Define publicly &mdash; builds trust and supports SEO. The internal grade maps to eBay's refurbished condition vocabulary and populates <code>custom.condition_label</code>. Grade D is confirmed in scope for the Shopify storefront (v2.2).</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Grade</th><th>eBay Label</th><th>Cosmetic</th><th>Functional</th></tr></thead>
+      <tbody>
+        <tr class="grade-a"><td><strong>Grade A</strong></td><td>Very Good &ndash; Refurbished</td><td>No visible marks at arm's length. Faint micro-scratches only under close inspection.</td><td>100% functional. <span class="badge badge-confirm">Battery threshold TBC</span></td></tr>
+        <tr class="grade-b"><td><strong>Grade B</strong></td><td>Good &ndash; Refurbished</td><td>Light scratches or minor scuffs visible. No cracks. No screen damage.</td><td>100% functional. <span class="badge badge-confirm">Battery threshold TBC</span></td></tr>
+        <tr class="grade-c"><td><strong>Grade C</strong></td><td>Fair &ndash; Refurbished</td><td>Noticeable scratches, dents, or heavy cosmetic wear. No structural or functional damage.</td><td>100% functional. <span class="badge badge-confirm">Battery threshold TBC — floor proposed at 50%</span></td></tr>
+        <tr><td><strong>Grade D</strong></td><td>For Parts or Not Working</td><td>Significant cosmetic damage — large cracks, dents, heavy wear.</td><td>Functional for basic tasks. May have missing or damaged components. <span class="badge badge-confirm">Battery threshold TBC</span></td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout callout-warn"><strong>Battery thresholds per grade:</strong> All battery health thresholds per grade remain unconfirmed, including for Grade D. The minimum floor of 50% is proposed — confirm actual thresholds before publishing the grading guide page. Battery threshold TBC entries will be updated once confirmed with Clinch IT.</div>
+    <div class="callout callout-note"><strong>Grade D — confirmed in scope (v2.2):</strong> Grade D is confirmed by Clinch IT as included within Shopify stock. Filter architecture (§5) and collection rules (§8) have been updated accordingly — <code>grade-d</code> tag and condition filter option added across laptops, desktops, and phones. The grading guide page (Architecture §11 Phase 6) should include Grade D when built.</div>
+    <div class="callout callout-note"><strong>warranty_months metafield default (v2.1):</strong> Warranty period confirmed at 90 days (3 months). Set the default value of <code>custom.warranty_months</code> to <strong>3</strong> in the metafield definition: Settings &rarr; Custom data &rarr; Metafields &rarr; Products &rarr; warranty_months &rarr; Default value: 3. This prevents the field being left blank on intake.</div>
+  </div>
+
+  <!-- 10 -->
+  <div class="section" id="trust">
+    <div class="section-header"><span class="section-num">10</span><h2>Trust Architecture</h2></div>
+
+    <div class="callout callout-note">
+      <strong>v2.1 update — three trust signals now confirmed from Clinch IT policy documents.</strong> Warranty period, returns window, and UK shipping are confirmed. Remaining items (tested statement, IMEI check) are still inferred from competitor best practice and require confirmation with Clinch before implementation.
+    </div>
+
+    <div class="table-wrap"><table>
+      <thead><tr><th>Element</th><th>Confirmed Copy</th><th>Placement</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Warranty badge</td><td>"90-Day Warranty Included"</td><td>All pages</td><td><span class="badge badge-yes">confirmed</span> — 90-day RTB, parts &amp; labour</td></tr>
+        <tr><td>Returns badge</td><td>"14-Day Returns"</td><td>All pages</td><td><span class="badge badge-yes">confirmed</span> — statutory minimum, UK Consumer Contracts Regulations</td></tr>
+        <tr><td>Grading badge</td><td>Links to /pages/grading-guide</td><td>Collection pages, product page</td><td><span class="badge badge-yes">confirmed</span> — grading standard confirmed (see §9)</td></tr>
+        <tr><td>Tested statement</td><td>"Every device tested to full functionality before listing"</td><td>Hub pages, product page</td><td><span class="badge badge-confirm">Confirm testing process with Clinch</span></td></tr>
+        <tr><td>Delivery badge</td><td>"Free UK Delivery"</td><td>All pages</td><td><span class="badge badge-yes">confirmed</span> — free DPD Local, all UK orders</td></tr>
+        <tr><td>Battery health on card</td><td>e.g. "Battery: 85%"</td><td>Product cards — laptops and phones where captured</td><td><span class="badge badge-yes">confirmed</span> — present in Clinch eBay listings</td></tr>
+        <tr><td>IMEI indicator</td><td>"Clean IMEI verified"</td><td>Phone product page</td><td><span class="badge badge-confirm">Confirm IMEI check is standard practice</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- 11 -->
+  <div class="section" id="phases">
+    <div class="section-header"><span class="section-num">11</span><h2>Implementation Priority Order</h2></div>
+    <div class="table-wrap"><table class="phase-table">
+      <thead><tr><th>Phase</th><th>Scope</th></tr></thead>
+      <tbody>
+        <tr><td><span class="phase-num">1 &mdash; Foundation</span></td><td>Product metafield schema, product type taxonomy, tag taxonomy. Core collections: all laptops, brand laptop collections, all desktops, brand desktop collections, all phones, Apple iPads.</td></tr>
+        <tr><td><span class="phase-num">2 &mdash; Navigation</span></td><td>Mega-menus, mobile nav, utility bar. Phone mega-menu kept minimal until sub-brand inventory is confirmed.</td></tr>
+        <tr><td><span class="phase-num">3 &mdash; Filtering</span></td><td>Search &amp; Discovery setup, metafield-to-facet mapping, mobile filter drawer. Activate only filters with sufficient stock density.</td></tr>
+        <tr><td><span class="phase-num">4 &mdash; Collection pages</span></td><td>Hub page templates, brand sub-collections, sort and active filter UI, product card template.</td></tr>
+        <tr><td><span class="phase-num">5 &mdash; Product page</span></td><td>Spec table from metafields, condition notes, battery health display, warranty CTA, charger indicator.</td></tr>
+        <tr><td><span class="phase-num">6 &mdash; Trust pages</span></td><td>Grading guide (/pages/grading-guide), warranty page (/pages/warranty).</td></tr>
+        <tr><td><span class="phase-num">7 &mdash; eBay sync</span></td><td>App selection, field mapping, title templates, inventory rules. Activated when stock migration is ready.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+</main>
+
+  <!-- Decisions -->
+  <div class="section" id="decisions">
+    <div class="section-header"><span class="section-num"></span><h2>Open Decisions</h2></div>
+    <p>Items requiring a client decision before the architecture can be finalised in those areas.</p>
+
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>Decision</th><th>Context</th><th>Options</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><strong>Scope of the Shopify store</strong></td>
+          <td>A significant portion of Clinch's eBay "Other" category is specialist B2B and pro-AV liquidation stock — broadcast signal converters, pro audio mixers, enterprise networking hardware, and unrelated items. This stock does not map cleanly onto the consumer/business IT architecture defined in this document. The proposed accessories collections (Cameras, Headphones &amp; Speakers, Networking) have been written assuming consumer or business IT context. In practice, Clinch's cameras are broadcast-spec (Marshall, AJA), their audio is pro mixer/amplifier stock, and their networking is enterprise-grade (Cisco QSFP). These are different buyers, different search behaviour, and different trust signals.</td>
+          <td>
+            <strong>A.</strong> Shopify store is scoped to core IT categories only (laptops, desktops, phones, tablets, and clean IT accessories). Pro-AV and liquidation stock remains eBay-only.<br><br>
+            <strong>B.</strong> Shopify store covers all stock. Accessories architecture is expanded and restructured to reflect the actual inventory mix, including pro-AV and specialist categories.
+          </td>
+          <td><span class="badge badge-yes">Resolved — Option A (v2.4)</span></td>
+        </tr>
+      </tbody>
+    </table></div>
+    <div class="callout callout-note"><strong>Resolved (v2.4):</strong> Confirmed Option A — the Shopify store is scoped to core IT categories only (laptops, desktops, phones, tablets, and clean IT accessories). Clinch's eBay "Other" category — pro-AV, broadcast, and specialist B2B liquidation stock — is confirmed <strong>excluded</strong> from Shopify and remains eBay-only. No changes needed to the accessories collections (Cameras, Headphones &amp; Speakers, Networking) defined in §2 — these remain scoped to consumer/business IT context as originally written, since the broadcast-spec and enterprise-grade items that prompted this decision will not be listed on Shopify.</div>
+  </div>
+
+<script>
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('.sidebar nav a');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + entry.target.id) link.classList.add('active');
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

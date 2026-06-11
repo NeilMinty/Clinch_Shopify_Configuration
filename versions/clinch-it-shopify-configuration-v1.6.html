@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinch IT — Shopify Configuration v1.6</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #f5f5f5;
+    display: flex;
+  }
+
+  /* SIDEBAR */
+  #sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: #111;
+    color: #ccc;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+    padding: 24px 0;
+    flex-shrink: 0;
+  }
+
+  #sidebar h1 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0 20px 16px;
+    border-bottom: 1px solid #2a2a2a;
+    margin-bottom: 16px;
+  }
+
+  #sidebar .version {
+    font-size: 11px;
+    color: #666;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid #2a2a2a;
+    margin-bottom: 12px;
+  }
+
+  #sidebar .nav-group {
+    margin-bottom: 4px;
+  }
+
+  #sidebar .nav-group-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #555;
+    padding: 10px 20px 4px;
+  }
+
+  #sidebar a {
+    display: block;
+    padding: 5px 20px;
+    color: #aaa;
+    text-decoration: none;
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+
+  #sidebar a:hover { color: #fff; background: #1a1a1a; }
+  #sidebar a.active { color: #fff; border-left: 2px solid #fff; padding-left: 18px; }
+
+  /* MAIN */
+  #main {
+    flex: 1;
+    padding: 48px 56px;
+    max-width: 960px;
+    overflow-x: hidden;
+  }
+
+  .doc-header {
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 3px solid #111;
+  }
+
+  .doc-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .doc-header .meta {
+    font-size: 12px;
+    color: #888;
+  }
+
+  /* SECTIONS */
+  .section {
+    margin-bottom: 56px;
+    scroll-margin-top: 32px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #111;
+  }
+
+  .section-num {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #888;
+    min-width: 28px;
+  }
+
+  .section-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111;
+  }
+
+  .subsection {
+    margin-bottom: 32px;
+    scroll-margin-top: 32px;
+  }
+
+  .subsection h3 {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #444;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .subsection h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #222;
+    margin: 16px 0 8px;
+  }
+
+  p { margin-bottom: 10px; color: #333; }
+
+  ul, ol {
+    margin: 0 0 12px 20px;
+    color: #333;
+  }
+
+  li { margin-bottom: 4px; }
+
+  /* CALLOUT BOXES */
+  .callout {
+    border-left: 3px solid #111;
+    background: #f9f9f9;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-size: 13px;
+  }
+
+  .callout.confirmed {
+    border-left-color: #2d7a2d;
+    background: #f0f7f0;
+  }
+
+  .callout.inferred {
+    border-left-color: #b07d00;
+    background: #fffbf0;
+  }
+
+  .callout.legal {
+    border-left-color: #8b0000;
+    background: #fff5f5;
+  }
+
+  .callout.open {
+    border-left-color: #4a4aaa;
+    background: #f5f5ff;
+  }
+
+  .callout-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+
+  .callout.confirmed .callout-label { color: #2d7a2d; }
+  .callout.inferred .callout-label { color: #b07d00; }
+  .callout.legal .callout-label { color: #8b0000; }
+  .callout.open .callout-label { color: #4a4aaa; }
+
+  /* TABLES */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 13px;
+  }
+
+  th {
+    background: #111;
+    color: #fff;
+    text-align: left;
+    padding: 8px 12px;
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e8e8e8;
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td { background: #fafafa; }
+
+  /* POLICY COPY BLOCKS */
+  .policy-copy {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 20px 24px;
+    margin: 14px 0;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .policy-copy h4 {
+    font-size: 13px;
+    font-weight: 700;
+    margin: 16px 0 6px;
+    color: #111;
+  }
+
+  .policy-copy h4:first-child { margin-top: 0; }
+
+  .policy-copy p { color: #222; }
+
+  .copy-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #888;
+    margin-bottom: 8px;
+  }
+
+  /* ADMIN PATH */
+  .admin-path {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 3px 8px;
+    border-radius: 3px;
+    color: #444;
+    display: inline-block;
+    margin: 2px 0;
+  }
+
+  .config-step {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    padding: 14px 18px;
+    margin: 10px 0;
+  }
+
+  .config-step p:last-child { margin-bottom: 0; }
+
+  /* STATUS BADGES */
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 2px;
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+
+  .badge-confirmed { background: #e0f0e0; color: #2d7a2d; }
+  .badge-tbc { background: #fff0d0; color: #b07d00; }
+  .badge-open { background: #e8e8ff; color: #4a4aaa; }
+  .badge-legal { background: #ffe0e0; color: #8b0000; }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 24px 0;
+  }
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <h1>Clinch IT — Shopify</h1>
+  <div class="version">Configuration Document v1.6<br>Supplements Architecture v2.4</div>
+  <a href="/" style="display:block;padding:8px 20px 10px;font-size:11px;color:#666;text-decoration:none;border-bottom:1px solid #222;margin-bottom:4px;">&larr; All documents</a>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Store Policies</div>
+    <a href="#policies-overview">Overview</a>
+    <a href="#refund-policy">Refund &amp; Returns Policy</a>
+    <a href="#warranty-policy">Warranty Policy</a>
+    <a href="#shipping-policy">Shipping Policy</a>
+    <a href="#tos">Terms of Service</a>
+    <a href="#privacy">Privacy Policy</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Shipping Configuration</div>
+    <a href="#shipping-zones">Zones &amp; Rates</a>
+    <a href="#shipping-eu">EU &amp; International (Deferred)</a>
+    <a href="#shipping-dpd">DPD Local Setup</a>
+    <a href="#shipping-packaging">Packaging &amp; Weights</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Payments &amp; Tax</div>
+    <a href="#payments">Payment Methods</a>
+    <a href="#tax">VAT Configuration</a>
+    <a href="#fraud">Fraud Settings</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Checkout</div>
+    <a href="#checkout-config">Checkout Configuration</a>
+    <a href="#abandoned">Abandoned Checkout</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Transactional Emails</div>
+    <a href="#email-overview">Overview &amp; Principles</a>
+    <a href="#email-order-confirm">Order Confirmation</a>
+    <a href="#email-shipping">Shipping Confirmation</a>
+    <a href="#email-delivered">Out for Delivery / Delivered</a>
+    <a href="#email-return">Return Instructions</a>
+    <a href="#email-refund">Refund Confirmation</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Product Intake</div>
+    <a href="#intake-overview">Overview &amp; Responsibility</a>
+    <a href="#intake-proforma">Intake Pro Forma</a>
+    <a href="#intake-tags">Tag Application Rules</a>
+    <a href="#intake-tools">Recommended Tools</a>
+    <a href="#intake-workflow">Step-by-Step Workflow</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Architecture Cross-Reference</div>
+    <a href="#xref">Config → Architecture Map</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Open Decisions</div>
+    <a href="#open-decisions">All Open Items</a>
+  </div>
+</nav>
+
+<div id="main">
+
+  <div class="doc-header">
+    <h1>Clinch IT — Shopify Configuration</h1>
+    <div class="meta">v1.6 &nbsp;·&nbsp; Supplements Architecture Document v2.4 &nbsp;·&nbsp; June 2026<br>
+    Prepared by Neil Minty / Personaify &nbsp;·&nbsp; HDI methodology — confirmed data distinguished from inferred throughout</div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: STORE POLICIES -->
+  <!-- ============================================================ -->
+
+  <div class="section" id="policies-overview">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>Store Policies</h2>
+    </div>
+
+    <p>Shopify surfaces policies at checkout, in the footer, and in customer account pages. All five standard policy pages need to be customised for Clinch IT's refurb context. The default Shopify templates are generic and legally insufficient for a refurbished goods retailer operating under UK consumer law.</p>
+
+    <div class="callout legal">
+      <div class="callout-label">Legal Note</div>
+      UK Consumer Contracts Regulations 2013 apply in full to refurbished goods sold online. There is no reduced statutory right for pre-owned items. Customers have a 14-day right to cancel and return for any reason, starting from the day they receive the goods. Clinch IT's own 90-day warranty and battery exclusion policies apply from day 15 onwards and must not be written in a way that appears to limit the statutory 14-day cancellation right. This document is drafted accordingly. Independent legal review is recommended before go-live.
+    </div>
+
+    <p>Policy pages are managed at: <span class="admin-path">Settings → Policies</span></p>
+    <p>Policies are surfaced automatically in: checkout footer links, footer navigation (must be added manually to footer menu), customer account portal.</p>
+
+    <div class="callout confirmed">
+      <div class="callout-label">Confirmed from Clinch documents</div>
+      Company: Clinch IT &nbsp;·&nbsp; Reg. No. 13415386 &nbsp;·&nbsp; VAT No. 396134084<br>
+      Address: Unit C3 Chaucer, Kemsing, Sevenoaks, Kent TN15 6PL<br>
+      Contact: vdavis@clinchit.com &nbsp;·&nbsp; 020 3822 0855 Option 3<br>
+      Warranty: 90-day RTB, parts and labour<br>
+      Battery exclusion: not covered by warranty; DOA fault must be reported within 14 days<br>
+      Governing law: United Kingdom
+    </div>
+
+    <div class="callout legal">
+      <div class="callout-label">Action Required Before Implementation — OD-C21</div>
+      All policy pages and transactional emails in this document currently reference <strong>vdavis@clinchit.com</strong> (Vicky Davis), sourced from the existing Terms of Service document. A named individual's email address should not be used in public-facing store policies or system-generated emails. Staff change, and every policy page, footer, and email template would require updating. Clinch IT should set up a generic contact address (e.g. <strong>hello@clinchit.com</strong> or <strong>support@clinchit.com</strong>) before the store goes live. All 13 instances of vdavis@clinchit.com in this document are placeholders pending that decision — replace globally once the generic address is confirmed. See OD-C21 in Open Decisions.
+    </div>
+  </div>
+
+  <!-- REFUND & RETURNS POLICY -->
+  <div class="section" id="refund-policy">
+    <div class="section-header">
+      <div class="section-num">01a</div>
+      <h2>Refund &amp; Returns Policy</h2>
+    </div>
+
+    <div class="subsection">
+      <h3>Shopify Admin Path</h3>
+      <p><span class="admin-path">Settings → Policies → Refund policy</span></p>
+      <p>This is also the page Shopify links to in the checkout footer. Paste the copy below directly into the rich text editor, or as HTML if the theme supports it.</p>
+    </div>
+
+    <div class="subsection">
+      <h3>Policy Copy — Ready to Implement</h3>
+      <div class="copy-label">Clinch IT — Refund &amp; Returns Policy</div>
+      <div class="policy-copy">
+
+        <h4>Your Right to Cancel (Statutory)</h4>
+        <p>You have the right to cancel your order and return any item within 14 days of receiving it, for any reason, under the Consumer Contracts Regulations 2013. You do not need to give a reason.</p>
+        <p>To exercise this right, contact us within 14 days of delivery at <strong>vdavis@clinchit.com</strong> or call <strong>020 3822 0855 (Option 3)</strong>. Do not return an item before contacting us — we will provide a returns authorisation and instructions.</p>
+        <p>Once we receive and inspect the returned item, we will issue a full refund to your original payment method within 14 days. We may deduct from the refund if the item has been handled beyond what is necessary to establish its nature, characteristics, and functioning.</p>
+
+        <h4>Returns Are Free</h4>
+        <p>Returns within the 14-day statutory cancellation period are free of charge. We'll provide a prepaid return label — there's no cost to you for returning an item you've changed your mind about.</p>
+        <p>Items must be securely packaged for return. If you received the item in its original packaging, please reuse it. If the original packaging is damaged, use robust replacement packaging. For items containing batteries (including lithium batteries), packaging must be rigid and the item secured against movement. Damage caused by inadequate return packaging may affect your refund amount.</p>
+
+        <h4>Faulty Items — Dead on Arrival (Days 1–14)</h4>
+        <p>If your item arrives faulty or not as described, contact us immediately at <strong>vdavis@clinchit.com</strong> with your order number and a description of the fault. Faults reported within 14 days of delivery are covered under our Dead on Arrival (DOA) policy. We will arrange collection at our cost and offer a repair, replacement, or full refund at your preference.</p>
+
+        <h4>Battery Faults — Important</h4>
+        <p>Batteries are not covered under our standard 90-day warranty (see Warranty Policy). However, a battery fault reported within 14 days of delivery is treated as a DOA fault and covered at no cost to you. Battery faults reported after 14 days fall outside our warranty and will be assessed on a case-by-case basis.</p>
+
+        <h4>Warranty Returns (Days 15–90)</h4>
+        <p>Items that develop a fault after the 14-day cancellation period may be covered under our 90-day RTB (Return to Base) warranty. See our Warranty Policy for full details. Warranty returns require prior authorisation — contact us before sending any item back.</p>
+
+        <h4>Non-Returnable Items</h4>
+        <p>Items that have been damaged by misuse or accidental damage after delivery are not eligible for return or refund. Grade and cosmetic condition are clearly described at point of sale — cosmetic wear consistent with the stated grade is not a fault.</p>
+
+        <h4>Inspection &amp; Refund Timeline</h4>
+        <p>Once we receive your return, we'll inspect it within <strong>5 business days</strong> and process your refund or replacement. Refunds are issued to the original payment method. Card refunds may take 3–5 business days to appear depending on your bank.</p>
+
+        <h4>Contact Us</h4>
+        <p>Clinch IT &nbsp;·&nbsp; Unit C3 Chaucer, Kemsing, Sevenoaks, Kent TN15 6PL<br>
+        vdavis@clinchit.com &nbsp;·&nbsp; 020 3822 0855 (Option 3)</p>
+
+      </div>
+    </div>
+
+    <div class="callout confirmed">
+      <div class="callout-label">Confirmed (resolves OD-C01, OD-C14)</div>
+      Returns within the 14-day statutory window are free, with a prepaid return label provided by Clinch IT — no cost to the customer either way. Returns inspection turnaround is 5 business days from receipt.
+    </div>
+
+  </div>
+
+  <!-- WARRANTY POLICY -->
+  <div class="section" id="warranty-policy">
+    <div class="section-header">
+      <div class="section-num">01b</div>
+      <h2>Warranty Policy</h2>
+    </div>
+
+    <div class="subsection">
+      <h3>Shopify Admin Path</h3>
+      <p>Shopify does not have a dedicated warranty policy field. Options:</p>
+      <ul>
+        <li><strong>Recommended:</strong> Create a dedicated <span class="admin-path">Pages → Warranty Policy</span> page and link it in the footer navigation and from product pages via a collapsible accordion section in the product template.</li>
+        <li>Alternatively, append warranty terms to the bottom of the Refund Policy — less visible but simpler to implement.</li>
+      </ul>
+    </div>
+
+    <div class="subsection">
+      <h3>Policy Copy — Ready to Implement</h3>
+      <div class="copy-label">Clinch IT — Warranty Policy</div>
+      <div class="policy-copy">
+
+        <h4>Our Warranty</h4>
+        <p>Every item sold by Clinch IT includes a <strong>90-day Return to Base (RTB) warranty</strong>, covering all parts and labour. The warranty period begins on the date you receive your item.</p>
+
+        <h4>What Is Covered</h4>
+        <ul>
+          <li>Hardware faults that arise under normal use</li>
+          <li>Component failures not caused by misuse or accidental damage</li>
+          <li>Parts and labour for all approved warranty repairs</li>
+        </ul>
+
+        <h4>What Is Not Covered</h4>
+        <ul>
+          <li>Damage caused by misuse, accidental damage, or neglect</li>
+          <li>Batteries — see battery policy below</li>
+          <li>Cosmetic wear consistent with the item's stated grade at point of sale</li>
+          <li>Faults arising from unauthorised modification or repair</li>
+        </ul>
+
+        <h4>Battery Policy</h4>
+        <p>Batteries are excluded from our standard 90-day warranty. Battery health is disclosed on every listing. If a battery fault occurs within 14 days of delivery, it is covered under our Dead on Arrival (DOA) policy — contact us immediately. Battery faults reported after 14 days are not covered by warranty and will be assessed individually.</p>
+
+        <h4>How to Make a Warranty Claim</h4>
+        <p>Contact us before returning any item. Email <strong>vdavis@clinchit.com</strong> with your order number and a description of the fault. We will issue a returns authorisation and provide return instructions.</p>
+        <p>Items returned without prior authorisation may not be accepted.</p>
+
+        <h4>Return Shipping — Warranty Claims</h4>
+        <p>For warranty claims, the cost of returning the item to us falls to the buyer. We will cover return shipping back to you once the repair or replacement is complete.</p>
+
+        <h4>Packaging Your Return</h4>
+        <p>Where possible, use the original packaging. If the original packaging is damaged, use robust replacement packaging. For items containing batteries (including lithium batteries), packaging must be rigid with the item secured against movement and padding filling any empty space. Damage caused by inadequate packaging during transit will invalidate the warranty claim.</p>
+
+        <h4>Repair or Replacement</h4>
+        <p>We will repair or replace the faulty item at our discretion. If neither is possible, we will offer a refund or partial credit. Turnaround times will be communicated on receipt of the item.</p>
+
+        <h4>Grading Reference</h4>
+        <table>
+          <thead>
+            <tr><th>Grade</th><th>Condition</th><th>Cosmetic</th><th>Functionality</th><th>Components</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>A</strong></td><td>Excellent</td><td>Minor blemishes only</td><td>Fully functional</td><td>All original</td></tr>
+            <tr><td><strong>B</strong></td><td>Good</td><td>Not noticeable when powered on</td><td>Fully functional</td><td>All original</td></tr>
+            <tr><td><strong>C</strong></td><td>Fair</td><td>Noticeable imperfections</td><td>Fully functional</td><td>May be missing or damaged</td></tr>
+            <tr><td><strong>D</strong></td><td>Parts</td><td>Significant damage</td><td>Functional for basic tasks</td><td>May be missing or damaged</td></tr>
+          </tbody>
+        </table>
+
+        <h4>Contact</h4>
+        <p>Clinch IT &nbsp;·&nbsp; Unit C3 Chaucer, Kemsing, Sevenoaks, Kent TN15 6PL<br>
+        vdavis@clinchit.com &nbsp;·&nbsp; 020 3822 0855 (Option 3)</p>
+
+      </div>
+    </div>
+
+    <div class="callout open">
+      <div class="callout-label">Open Decision</div>
+      Warranty return shipping (days 15–90): stated above as buyer-pays inbound, Clinch-pays outbound. Confirm this is Clinch's intended position. The warranty doc does not address this explicitly.
+    </div>
+  </div>
+
+  <!-- SHIPPING POLICY -->
+  <div class="section" id="shipping-policy">
+    <div class="section-header">
+      <div class="section-num">01c</div>
+      <h2>Shipping Policy</h2>
+    </div>
+
+    <div class="subsection">
+      <h3>Shopify Admin Path</h3>
+      <p><span class="admin-path">Settings → Policies → Shipping policy</span></p>
+    </div>
+
+    <div class="subsection">
+      <h3>Policy Copy — Ready to Implement</h3>
+      <div class="copy-label">Clinch IT — Shipping Policy</div>
+      <div class="policy-copy">
+
+        <h4>UK Delivery</h4>
+        <p>We ship to all UK addresses, including Northern Ireland, the Scottish Highlands and Islands, and the Channel Islands, via <strong>DPD Local</strong>. All orders include full tracking and require a signature on delivery.</p>
+
+        <h4>UK Shipping Cost</h4>
+        <p>Standard delivery is <strong>free on all UK orders</strong>, including Northern Ireland, the Scottish Highlands and Islands, and the Channel Islands.</p>
+
+        <h4>Dispatch Times</h4>
+        <p>We dispatch orders Monday to Friday on working days. We endeavour to ship as soon as we receive your order. Orders placed after <strong>12 noon</strong> will be dispatched the following working day.</p>
+        <p>Once your tracking number is updated, please allow up to 24 hours for DPD to collect your parcel — this is outside our control.</p>
+
+        <h4>Signature on Delivery</h4>
+        <p>A signature is required on delivery for all orders. If you are not available, DPD will leave a card and attempt redelivery, or you can manage your delivery via the DPD app.</p>
+
+        <h4>Tracking</h4>
+        <p>Once your order is dispatched, you'll receive a tracking link by email so you can follow your delivery with DPD.</p>
+
+        <h4>Urgent Delivery</h4>
+        <p>If you need urgent shipping, please contact us before placing your order. We will do our best to accommodate. Email <strong>vdavis@clinchit.com</strong> or call <strong>020 3822 0855 (Option 3)</strong>.</p>
+
+        <h4>European &amp; International Delivery</h4>
+        <p>At present we ship to UK addresses only. International shipping may be introduced in future — please contact us if you have a specific request.</p>
+
+        <h4>Contact</h4>
+        <p>If you have a question about your delivery, email <strong>vdavis@clinchit.com</strong> or call <strong>020 3822 0855 (Option 3)</strong>.</p>
+
+      </div>
+    </div>
+
+    <div class="callout confirmed">
+      <div class="callout-label">Confirmed (resolves OD-C04, OD-C08)</div>
+      All UK addresses — including Northern Ireland, Scottish Highlands and Islands, and the Channel Islands — receive free DPD Local delivery on the same basis as the rest of the UK. No postcode restrictions at checkout. Isle of Man not separately addressed — treat as out of scope until raised by a customer; revisit if order volume from there emerges.
+    </div>
+  </div>
+
+  <!-- TERMS OF SERVICE -->
+  <div class="section" id="tos">
+    <div class="section-header">
+      <div class="section-num">01d</div>
+      <h2>Terms of Service</h2>
+    </div>
+
+    <div class="subsection">
+      <h3>Shopify Admin Path</h3>
+      <p><span class="admin-path">Settings → Policies → Terms of service</span></p>
+    </div>
+
+    <div class="subsection">
+      <h3>Assessment of Current Draft</h3>
+      <p>Clinch IT has a ToS document in place, but it is the standard Shopify boilerplate template with minimal customisation. Key issues:</p>
+      <ul>
+        <li>No mention of refurbished goods, grading, or product condition — significant gap for a refurb retailer</li>
+        <li>Contains US-law language ("state or province of residence") inconsistent with UK governing law stated in Section 18</li>
+        <li>Placeholder links present: <code>[LINK TO REFUND POLICY]</code>, <code>[LINK TO PRIVACY POLICY]</code> — must be replaced</li>
+        <li>No warranty terms referenced or linked</li>
+        <li>Limitation of liability clause (Section 13) does not reference UK consumer statutory rights — this is a legal gap</li>
+        <li>Contact details are present and correct</li>
+      </ul>
+      <div class="callout legal">
+        <div class="callout-label">Legal Note</div>
+        The boilerplate ToS should not be used as-is for a UK consumer-facing retailer. At minimum, the US-law language should be removed, statutory rights must be preserved, and refurb-specific terms added. Recommend a full redraft or legal review before go-live. The sections below provide a working draft — independent legal review recommended.
+      </div>
+    </div>
+
+    <div class="subsection">
+      <h3>Revised Terms of Service — Working Draft</h3>
+      <div class="copy-label">Clinch IT — Terms of Service (Working Draft — Legal Review Required)</div>
+      <div class="policy-copy">
+
+        <h4>Overview</h4>
+        <p>This website is operated by Clinch IT (company registration number 13415386, VAT number 396134084), registered at Unit C3 Chaucer, Kemsing, Sevenoaks, Kent TN15 6PL. Throughout the site, "we", "us" and "our" refer to Clinch IT.</p>
+        <p>By accessing or using our website and purchasing from us, you agree to be bound by these Terms of Service and our policies, including our Refund &amp; Returns Policy, Warranty Policy, and Shipping Policy. Please read these terms carefully before purchasing.</p>
+        <p>Our store is hosted by Shopify Inc., who provide our e-commerce platform.</p>
+
+        <h4>Products — Refurbished Goods</h4>
+        <p>All products sold by Clinch IT are refurbished or pre-owned items. Each item is graded and described according to our grading standard (A, B, C, or D), which reflects cosmetic condition. All items are tested and confirmed fully functional prior to sale unless otherwise stated. Full condition details, including grade, battery health where applicable, and any cosmetic imperfections, are disclosed on each product listing.</p>
+
+        <h4>Your Statutory Rights</h4>
+        <p>Nothing in these Terms of Service affects your statutory rights as a consumer under UK law, including your rights under the Consumer Rights Act 2015 and the Consumer Contracts (Information, Cancellation and Additional Charges) Regulations 2013. You have the right to cancel your order and return any item within 14 days of receipt, for any reason. See our Refund &amp; Returns Policy for details.</p>
+
+        <h4>Accuracy of Product Information</h4>
+        <p>We make every effort to ensure product descriptions, specifications, and images are accurate. Cosmetic condition is described in accordance with our grading standard. Minor variations between the listing and the item are possible where the item has been described and graded in good faith. Material inaccuracies should be reported to us immediately.</p>
+
+        <h4>Pricing</h4>
+        <p>All prices are displayed in GBP and include UK VAT where applicable. Prices are subject to change without notice. We reserve the right to cancel an order where a pricing error has occurred — we will notify you and issue a full refund in such cases.</p>
+
+        <h4>Payment</h4>
+        <p>Payment must be made in full at the time of order. We accept payment by debit card, credit card, and other methods displayed at checkout. All card transactions are encrypted and handled securely by our payment provider.</p>
+
+        <h4>Governing Law</h4>
+        <p>These Terms of Service are governed by the laws of England and Wales. Any disputes shall be subject to the exclusive jurisdiction of the courts of England and Wales.</p>
+
+        <h4>Changes to These Terms</h4>
+        <p>We may update these Terms of Service from time to time. The current version will always be available on this page. Your continued use of the site after changes are posted constitutes acceptance of the updated terms.</p>
+
+        <h4>Contact</h4>
+        <p>Clinch IT &nbsp;·&nbsp; Unit C3 Chaucer, Kemsing, Sevenoaks, Kent TN15 6PL<br>
+        vdavis@clinchit.com &nbsp;·&nbsp; 020 3822 0855 (Option 3)</p>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- PRIVACY POLICY -->
+  <div class="section" id="privacy">
+    <div class="section-header">
+      <div class="section-num">01e</div>
+      <h2>Privacy Policy</h2>
+    </div>
+
+    <div class="subsection">
+      <h3>Shopify Admin Path</h3>
+      <p><span class="admin-path">Settings → Policies → Privacy policy</span></p>
+    </div>
+
+    <div class="subsection">
+      <h3>Approach</h3>
+      <p>A UK-compliant privacy policy (UK GDPR / Data Protection Act 2018) is required. Shopify provides a privacy policy generator at <span class="admin-path">Settings → Policies → Create from template</span> which produces a reasonable starting point for UK operators. This should be used as the base and amended to reflect:</p>
+      <ul>
+        <li>Clinch IT's registered details and ICO registration number</li>
+        <li>Cookie consent — required for UK/EU visitors (see Analytics &amp; Tracking section)</li>
+        <li>Any third-party apps in use that process customer data (DPD, payment processors, review platform)</li>
+        <li>Data retention periods</li>
+      </ul>
+      <div class="callout confirmed">
+        <div class="callout-label">Confirmed (resolves OD-C13)</div>
+        Clinch IT is registered with the ICO. Include the ICO registration number in the privacy policy — request this from Clinch IT if not already on file.
+      </div>
+      <p>Full privacy policy drafting is outside the scope of this configuration document and should be completed with appropriate legal input. Use Shopify's template generator as a starting point and flag for legal review.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: SHIPPING CONFIGURATION -->
+  <!-- ============================================================ -->
+
+  <div class="section" id="shipping-zones">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>Shipping Configuration</h2>
+    </div>
+
+    <div class="callout confirmed">
+      <div class="callout-label">Confirmed</div>
+      Carrier: DPD Local (Next Day service, Clinch's own account connected) &nbsp;·&nbsp; Geography: UK only at launch — including Northern Ireland, Scottish Highlands &amp; Islands, and Channel Islands &nbsp;·&nbsp; UK rate: Free, no exclusions &nbsp;·&nbsp; EU/International: deferred, see below &nbsp;·&nbsp; Dispatch days: Monday–Friday &nbsp;·&nbsp; Cutoff: 12 noon &nbsp;·&nbsp; Signature: required on all deliveries &nbsp;·&nbsp; Urgent shipping: available on request &nbsp;·&nbsp; Click &amp; collect: not offered &nbsp;·&nbsp; Locations: single (Sevenoaks, Kent)
+    </div>
+
+    <div class="subsection" id="shipping-dpd">
+      <h3>Shopify Admin Path</h3>
+      <p><span class="admin-path">Settings → Shipping and delivery</span></p>
+    </div>
+
+    <div class="subsection">
+      <h3>Shipping Profile Setup</h3>
+      <p>Shopify uses shipping profiles to map products to rates. For Clinch IT, a single general profile covering all products is sufficient at launch.</p>
+
+      <div class="config-step">
+        <h4>Step 1 — Confirm Single Location</h4>
+        <p>Verify that only one fulfilment location exists: <span class="admin-path">Settings → Locations</span>. Should show Clinch IT's Sevenoaks address only. Remove any default placeholder locations Shopify may have created during setup.</p>
+      </div>
+
+      <div class="config-step">
+        <h4>Step 2 — Create Shipping Zone</h4>
+        <p>Create a single zone: <strong>United Kingdom</strong>. Include all UK regions and territories — England, Scotland (including Highlands and Islands), Wales, Northern Ireland, and Channel Islands. No postcode exclusions or surcharges.</p>
+      </div>
+
+      <div class="config-step">
+        <h4>Step 3 — UK Shipping Rate</h4>
+        <p>Within the UK zone, add one rate:</p>
+        <table>
+          <thead><tr><th>Name</th><th>Type</th><th>Price</th><th>Condition</th></tr></thead>
+          <tbody>
+            <tr><td>Free Standard Delivery</td><td>Flat rate</td><td>£0.00</td><td>None — applies to all UK orders regardless of value or postcode</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="config-step">
+        <h4>Step 4 — DPD Local Account Connection</h4>
+        <p>Clinch IT's DPD Local account will be connected to Shopify so that tracking links can be added to transactional emails automatically. DPD Local is the fulfilment carrier; flat-rate free shipping means no rate calculator is needed at checkout.</p>
+
+        <p><strong>Recommended connection method:</strong></p>
+        <ul>
+          <li><strong>Shipstation</strong> — Shopify-native integration, supports DPD Local, generates labels from fulfilled orders, and pushes tracking numbers back to Shopify automatically. Recommended given Clinch IT's confirmed DPD Local account.</li>
+          <li><strong>DPD Local Online</strong> — DPD's own web portal for label creation. Lower volume option if Shipstation is not adopted — tracking numbers would need to be entered into Shopify manually after each dispatch.</li>
+        </ul>
+
+        <div class="callout confirmed">
+          <div class="callout-label">Confirmed (resolves OD-C06)</div>
+          Clinch IT's DPD Local account will be connected so tracking links populate automatically in transactional emails. Shipstation is the recommended connection method to achieve this with minimal manual intervention — confirm with Clinch IT whether they're open to adding Shipstation, or prefer to enter tracking numbers manually via DPD Local Online.
+        </div>
+      </div>
+
+      <div class="config-step">
+        <h4>Step 5 — Tracking</h4>
+        <p>DPD provides tracking numbers per consignment. If using Shipstation, tracking numbers sync to Shopify automatically on dispatch. If using DPD Local Online, enter manually at: <span class="admin-path">Orders → [Order] → Fulfill items → Add tracking</span>. Either way, this triggers the Shopify shipping confirmation email.</p>
+        <p>DPD tracking URL format: <code>https://www.dpd.co.uk/apps/tracking/?reference=[TRACKING_NUMBER]</code>. Set this as the carrier URL in Shopify so customers get a direct tracking link.</p>
+      </div>
+
+      <div class="config-step">
+        <h4>Step 6 — Service Tier</h4>
+        <div class="callout confirmed">
+          <div class="callout-label">Confirmed (resolves OD-C07)</div>
+          DPD Next Day is the standard service. Shipping policy and transactional email copy reflect a 1-business-day delivery expectation from dispatch (subject to the 12 noon cutoff and DPD's own collection timing).
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection" id="shipping-eu">
+      <h3>EU &amp; International Shipping — Deferred</h3>
+
+      <div class="callout open">
+        <div class="callout-label">Confirmed — Out of Scope for Launch</div>
+        EU and international shipping is confirmed out of scope for launch. The store ships to UK addresses only (see Shipping Policy §01c). This section is retained for reference should EU shipping be revisited post-launch — none of the configuration below should be actioned for the initial build.
+      </div>
+
+      <h4>If Revisited Post-Launch — Plan-Tier Dependency</h4>
+      <div class="callout legal">
+        <div class="callout-label">Important — Shopify Plan Requirement</div>
+        Carrier-calculated shipping rates at checkout require either the <strong>Shopify Advanced plan</strong> (or higher), or the carrier-calculated shipping add-on available on lower plans for an additional monthly fee. This would need to be confirmed before EU shipping could be configured.
+      </div>
+
+      <h4>If Revisited — EU Zone Setup Notes</h4>
+      <div class="config-step">
+        <p><strong>Countries to include:</strong> All European countries where DPD Local delivers — would need confirming against Clinch IT's DPD Local account coverage.</p>
+      </div>
+      <div class="config-step">
+        <p><strong>Rate type:</strong> Carrier-calculated. DPD Local does not have a native Shopify carrier-calculated integration — a shipping app (e.g. Shipstation, Easyship) would be required to surface calculated EU rates at checkout.</p>
+      </div>
+      <div class="config-step">
+        <p><strong>Duties and import taxes:</strong> Post-Brexit, all EU shipments from the UK are subject to import duties and VAT in the destination country. Shopify's Duties and Import Taxes feature (Advanced/Plus only) can collect these at checkout — without it, customers face unexpected charges on delivery.</p>
+      </div>
+    </div>
+
+    <div class="subsection" id="shipping-packaging">
+      <h3>Packaging &amp; Weight Configuration</h3>
+      <p>With UK-only flat-rate free shipping, product weights are not required for checkout rate calculation. However, weights are useful for label generation via Shipstation (if adopted) and for future-proofing if EU shipping is revisited.</p>
+      <p>Recommended approach: populate Shopify's native weight field on every product as part of the product upload process.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: PAYMENTS & TAX -->
+  <!-- ============================================================ -->
+
+  <div class="section" id="payments">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>Payments &amp; Tax</h2>
+    </div>
+
+    <div class="subsection">
+      <h3>Payment Methods</h3>
+
+      <div class="callout confirmed">
+        <div class="callout-label">Confirmed</div>
+        Primary processor: Shopify Payments &nbsp;·&nbsp; Klarna: out of scope for launch &nbsp;·&nbsp; PayPal: included for launch
+      </div>
+
+      <h4>Shopify Payments Setup</h4>
+      <p><span class="admin-path">Settings → Payments → Shopify Payments</span></p>
+      <p>Shopify Payments is the recommended primary processor. It eliminates the third-party transaction fee (0.5%–2% depending on plan) charged when using external payment providers. It also enables Shop Pay, Apple Pay, and Google Pay without additional configuration.</p>
+
+      <div class="config-step">
+        <p><strong>Required to activate Shopify Payments:</strong></p>
+        <ul>
+          <li>Business bank account (UK)</li>
+          <li>Company registration number — confirmed: 13415386</li>
+          <li>ID verification for the account owner</li>
+          <li>VAT number — confirmed: 396134084</li>
+        </ul>
+        <p>Shopify Payments is available on all Shopify plans for UK merchants. Standard credit/debit card processing rates apply (varies by plan — confirm current rates at shopify.com/payments).</p>
+      </div>
+
+      <h4>Payment Methods to Enable</h4>
+      <table>
+        <thead><tr><th>Method</th><th>Status</th><th>Action Required</th></tr></thead>
+        <tbody>
+          <tr><td>Visa / Mastercard / Amex</td><td><span class="badge badge-confirmed">Confirmed</span></td><td>Included with Shopify Payments — enabled by default</td></tr>
+          <tr><td>Shop Pay</td><td><span class="badge badge-confirmed">Confirm</span></td><td>Enable in Shopify Payments settings — recommended</td></tr>
+          <tr><td>Apple Pay</td><td><span class="badge badge-confirmed">Confirm</span></td><td>Enable in Shopify Payments settings — recommended</td></tr>
+          <tr><td>Google Pay</td><td><span class="badge badge-confirmed">Confirm</span></td><td>Enable in Shopify Payments settings — recommended</td></tr>
+          <tr><td>Klarna</td><td><span class="badge badge-confirmed">Out of scope</span></td><td>Not activated for launch — revisit post-launch if BNPL demand emerges</td></tr>
+          <tr><td>PayPal</td><td><span class="badge badge-confirmed">Confirmed — included</span></td><td>Add as a payment provider alongside Shopify Payments</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Klarna — Out of Scope for Launch</h4>
+      <p>Klarna is visible on Clinch IT's eBay listings, but is confirmed out of scope for the Shopify launch. No configuration required. Revisit post-launch if BNPL conversion uplift is worth the additional Shopify third-party transaction fee that Klarna would incur alongside Shopify Payments.</p>
+
+      <h4>PayPal — Included for Launch</h4>
+      <p>Path: <span class="admin-path">Settings → Payments → Add payment methods → Search "PayPal"</span></p>
+      <p>PayPal is added as an additional payment provider alongside Shopify Payments. Note this incurs the Shopify third-party transaction fee on PayPal-paid orders, in addition to PayPal's own processing fee. PayPal is widely recognised and can reduce checkout abandonment for buyers who prefer not to enter card details directly.</p>
+    </div>
+
+    <div class="subsection" id="tax">
+      <h3>VAT Configuration</h3>
+
+      <div class="callout confirmed">
+        <div class="callout-label">Confirmed</div>
+        Clinch IT is VAT registered: VAT No. 396134084. Clinch IT is <strong>not</strong> operating under the VAT Margin Scheme — VAT is charged at the standard flat rate of 20% on the full selling price. Standard UK VAT configuration applies, no special handling required.
+      </div>
+
+      <p><span class="admin-path">Settings → Taxes and duties</span></p>
+
+      <div class="config-step">
+        <h4>UK VAT Setup Steps</h4>
+        <ol>
+          <li>Under <strong>Tax regions</strong>, select <strong>United Kingdom</strong></li>
+          <li>Enter VAT registration number: <strong>396134084</strong></li>
+          <li>Confirm <strong>Charge VAT</strong> is enabled</li>
+          <li>Set standard rate: <strong>20%</strong> on all products — confirmed, no margin scheme adjustments needed</li>
+          <li>Confirm <strong>Include tax in prices</strong> — recommended for UK consumer retail (prices displayed inclusive of VAT)</li>
+        </ol>
+      </div>
+
+      <h4>B2B / Business Customers</h4>
+      <div class="callout confirmed">
+        <div class="callout-label">Confirmed</div>
+        VAT-exempt pricing for business customers is not required at launch. If Clinch IT sells to VAT-registered businesses, standard VAT invoices (which Shopify generates automatically) are sufficient — no additional checkout configuration needed for launch.
+      </div>
+    </div>
+
+    <div class="subsection" id="fraud">
+      <h3>Fraud Settings</h3>
+      <p><span class="admin-path">Settings → Payments → Fraud prevention</span></p>
+
+      <p>Shopify Payments includes built-in fraud analysis scoring on every order. The following settings and thresholds are recommended for a refurb tech retailer. Thresholds are based on Shopify's published fraud prevention guidance and industry benchmarks for consumer electronics — a category with above-average fraud rates due to high resale value and frequent card-not-present abuse.</p>
+
+      <div class="callout inferred">
+        <div class="callout-label">Basis for Recommendations</div>
+        Thresholds below are derived from Shopify's fraud documentation and Signifyd's 2023 Consumer Electronics Fraud Benchmark Report, which identifies consumer electronics as a top-three category for CNP (card-not-present) fraud, with average order values in the £200–£600 range being highest risk. OD-C15 is removed — thresholds are set here as a recommended default and can be adjusted once trading data is available.
+      </div>
+
+      <h4>Core Settings</h4>
+      <table>
+        <thead><tr><th>Setting</th><th>Recommendation</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Fraud analysis</td>
+            <td>Enable</td>
+            <td>Shopify flags orders as Low / Medium / High risk automatically. Medium and High risk orders should not auto-fulfil.</td>
+          </tr>
+          <tr>
+            <td>CVV verification</td>
+            <td>Require match — decline if CVV fails</td>
+            <td>Standard requirement. Most legitimate buyers have the card in hand; a CVV failure on a high-AOV order is a strong fraud signal.</td>
+          </tr>
+          <tr>
+            <td>AVS (Address Verification)</td>
+            <td>Flag mismatches for review — do not auto-decline</td>
+            <td>AVS mismatches on their own are common (gift orders, moved house, business delivery addresses). Use as a review trigger, not a block.</td>
+          </tr>
+          <tr>
+            <td>3D Secure</td>
+            <td>Leave enabled — do not disable</td>
+            <td>Enabled by default with Shopify Payments. Shifts liability to the card issuer on authenticated transactions. Critical for high-AOV refurb tech.</td>
+          </tr>
+          <tr>
+            <td>Auto-fulfil on High risk</td>
+            <td>Disabled</td>
+            <td>Never auto-fulfil a High risk order. Manually review before dispatch.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>Recommended Manual Review Thresholds</h4>
+      <p>The following thresholds trigger a manual hold before fulfilment. They are recommended starting points — adjust after 60–90 days of trading based on actual order distribution.</p>
+      <table>
+        <thead><tr><th>Trigger</th><th>Threshold</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Shopify fraud risk score</td>
+            <td>Medium or High</td>
+            <td>Hold for manual review before fulfilling</td>
+          </tr>
+          <tr>
+            <td>Order value</td>
+            <td>Above £400</td>
+            <td>Flag for secondary review — verify billing/delivery address match and check for velocity (same card, multiple orders)</td>
+          </tr>
+          <tr>
+            <td>Multiple orders, same card, within 24hrs</td>
+            <td>2 or more</td>
+            <td>Hold all orders pending review. Card testing pattern.</td>
+          </tr>
+          <tr>
+            <td>Delivery address differs significantly from billing</td>
+            <td>Different city or country</td>
+            <td>Flag if combined with Medium/High risk score</td>
+          </tr>
+          <tr>
+            <td>EU orders above £200</td>
+            <td>£200</td>
+            <td>Lower threshold for EU orders given higher return complexity and no chargeback parity with UK cards</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout inferred">
+        <div class="callout-label">Note</div>
+        The £400 UK threshold aligns with Clinch IT's likely AOV range for Grade A/B laptops and phones. At this value, a single fraudulent order represents material loss on a low-margin refurb unit. The EU threshold is set lower at £200 because cross-border chargebacks are harder to contest and return logistics are more complex. Review both after 60 days of live trading.
+      </div>
+
+      <h4>Shopify Admin — Fraud Review Workflow</h4>
+      <p>When an order is flagged:</p>
+      <ol>
+        <li>Do not fulfil — leave order in <strong>Unfulfilled</strong> status</li>
+        <li>Review the fraud analysis panel on the order: <span class="admin-path">Orders → [Order] → Fraud analysis</span></li>
+        <li>If satisfied, fulfil manually. If not, cancel the order and issue a full refund before the item leaves the building.</li>
+        <li>Contact the card issuer if you suspect a compromised card — do not simply cancel without flagging.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: CHECKOUT CONFIGURATION -->
+  <!-- ============================================================ -->
+
+  <div class="section" id="checkout-config">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>Checkout Configuration</h2>
+    </div>
+
+    <p><span class="admin-path">Settings → Checkout</span></p>
+
+    <div class="subsection">
+      <h3>Customer Accounts</h3>
+      <table>
+        <thead><tr><th>Setting</th><th>Recommendation</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td>Customer accounts</td><td>Optional (guest checkout enabled)</td><td>Removing friction at checkout. Account creation should be prompted post-purchase, not required.</td></tr>
+          <tr><td>New customer accounts</td><td>Enable "New customer accounts" (passwordless login via email link)</td><td>Shopify's newer account system is lower friction than legacy password-based accounts. Relevant for warranty claim and order history access.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subsection">
+      <h3>Contact Method</h3>
+      <p>Set to <strong>Email</strong> only (not phone). Email is the primary contact channel confirmed in Clinch IT's documents. This simplifies the checkout form and keeps transactional communications consistent.</p>
+    </div>
+
+    <div class="subsection">
+      <h3>Form Fields</h3>
+      <table>
+        <thead><tr><th>Field</th><th>Setting</th></tr></thead>
+        <tbody>
+          <tr><td>Company name</td><td>Optional — some B2B buyers will want to enter this</td></tr>
+          <tr><td>Address line 2</td><td>Optional</td></tr>
+          <tr><td>Shipping phone number</td><td>Required — DPD requires a phone number for delivery notifications</td></tr>
+        </tbody>
+      </table>
+      <div class="callout confirmed">
+        <div class="callout-label">Note</div>
+        Phone number at checkout must be set to Required (not Optional) to ensure DPD Local has the contact number needed for delivery notification and redelivery. This is a carrier requirement, not a preference.
+      </div>
+    </div>
+
+    <div class="subsection">
+      <h3>Order Processing</h3>
+      <table>
+        <thead><tr><th>Setting</th><th>Recommendation</th></tr></thead>
+        <tbody>
+          <tr><td>Automatically fulfil orders</td><td>Disabled — refurb units require manual inspection before dispatch. Fulfilment must be triggered manually.</td></tr>
+          <tr><td>Automatically archive orders</td><td>Enable — archive after fulfilment to keep the order queue clean</td></tr>
+          <tr><td>Payment capture</td><td>Automatically at checkout — do not use manual capture unless there is a specific reason</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subsection">
+      <h3>Tipping</h3>
+      <p>Disable. Not appropriate for a product retailer.</p>
+      <p><span class="admin-path">Settings → Checkout → Tipping → Uncheck "Show tipping options at checkout"</span></p>
+    </div>
+
+    <div class="subsection">
+      <h3>Terms of Service Checkbox</h3>
+      <p>Enable the ToS checkbox at checkout: <span class="admin-path">Settings → Checkout → Require customers to agree to Terms of Service</span>. This is not required by UK law but is good practice for a refurb retailer where policy acknowledgement (grading, battery exclusion, returns process) is commercially important.</p>
+    </div>
+
+    <div class="subsection">
+      <h3>Checkout Branding</h3>
+      <p>Brand customisation for checkout (logo, colours, fonts) is handled via: <span class="admin-path">Settings → Checkout → Customize</span>. This is flagged for the graphic designer — configuration only here. Ensure Clinch IT branding assets are provided before this step.</p>
+    </div>
+
+    <div class="subsection" id="abandoned">
+      <h3>Abandoned Checkout</h3>
+      <p><span class="admin-path">Settings → Checkout → Abandoned checkouts</span></p>
+      <table>
+        <thead><tr><th>Setting</th><th>Recommendation</th></tr></thead>
+        <tbody>
+          <tr><td>Send abandoned checkout emails</td><td>Enable</td></tr>
+          <tr><td>Send after</td><td>1 hour — standard best practice</td></tr>
+          <tr><td>Email recipient</td><td>Customers who have opted into marketing only — confirmed (resolves OD-C16)</td></tr>
+        </tbody>
+      </table>
+      <div class="callout confirmed">
+        <div class="callout-label">Confirmed (resolves OD-C16)</div>
+        Abandoned checkout recovery emails go only to customers who have opted into marketing communications at checkout. This is the more conservative PECR-compliant position — no recovery emails to customers who haven't given marketing consent, even though abandoned checkout emails are sometimes treated as transactional. Ensure the marketing consent checkbox is present and unticked by default at checkout (per UK PECR/GDPR requirements for consent to be opt-in, not opt-out).
+      </div>
+      <p>The abandoned checkout email uses Shopify's default template. It should be customised to reflect Clinch IT's tone and include a clear link back to the cart. See Transactional Emails section for copy guidance.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: TRANSACTIONAL EMAILS -->
+  <!-- ============================================================ -->
+
+  <div class="section" id="email-overview">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>Transactional Emails</h2>
+    </div>
+
+    <p>Shopify sends transactional emails automatically based on order events. All templates are managed at: <span class="admin-path">Settings → Notifications</span></p>
+
+    <div class="subsection">
+      <h3>Principles</h3>
+      <ul>
+        <li>All emails should reference the 90-day warranty and signpost the returns process — this is a key trust signal for refurb buyers</li>
+        <li>Battery exclusion should be visible in the order confirmation — not buried in policy pages</li>
+        <li>Tone: clear, direct, professional. Not warm or salesy. These are operational communications.</li>
+        <li>All emails must include the contact email and phone number — refurb buyers need to reach a human quickly if something is wrong</li>
+        <li>Branding (logo, colours) to be applied by the graphic designer — copy and structure below is configuration-ready</li>
+      </ul>
+
+      <div class="callout inferred">
+        <div class="callout-label">Note on Shopify Email Editing</div>
+        Shopify notification templates use Liquid templating. Editing requires some familiarity with Liquid syntax or use of the built-in visual editor. <span class="admin-path">Settings → Notifications → [Template name] → Edit code</span>. For non-technical operators, editing the plain text fallback version is safer than editing the HTML.
+      </div>
+    </div>
+
+    <div class="subsection" id="email-order-confirm">
+      <h3>Order Confirmation Email</h3>
+      <p>Triggered: immediately on order placement.</p>
+      <p>This is the highest-value transactional email — the customer's first post-purchase communication. For a refurb retailer, it needs to do more than confirm the order. It should pre-empt the most common post-purchase anxieties: "Is this actually tested?", "What if something's wrong?", "What does the warranty cover?"</p>
+
+      <div class="copy-label">Subject Line</div>
+      <div class="policy-copy">
+        <p>Your Clinch IT order is confirmed — [ORDER NUMBER]</p>
+      </div>
+
+      <div class="copy-label">Email Body — Key Sections to Include</div>
+      <div class="policy-copy">
+        <h4>Order Summary</h4>
+        <p>[Standard Shopify order summary — item, grade, price, delivery address]</p>
+
+        <h4>What Happens Next</h4>
+        <p>Your order is being prepared for dispatch. We check and test every item before it leaves us. We dispatch via DPD Next Day — you'll receive a shipping confirmation with your DPD tracking link once it's on its way.</p>
+
+        <h4>Your Warranty</h4>
+        <p>Your item is covered by our <strong>90-day RTB warranty</strong> from the date of delivery. The warranty covers parts and labour for hardware faults arising under normal use.</p>
+        <p><strong>Batteries are not included in the warranty.</strong> If you experience a battery fault, please contact us within 14 days of delivery — faults reported in this window are covered under our Dead on Arrival policy at no cost to you.</p>
+
+        <h4>Returns</h4>
+        <p>You have 14 days from delivery to return your item for any reason, free of charge — we'll provide a prepaid return label. Contact us before returning anything — we'll sort it out. <a href="[LINK TO REFUND POLICY]">View our returns policy</a>.</p>
+
+        <h4>Need Help?</h4>
+        <p>Email us at <strong>vdavis@clinchit.com</strong> or call <strong>020 3822 0855 (Option 3)</strong>.</p>
+      </div>
+    </div>
+
+    <div class="subsection" id="email-shipping">
+      <h3>Shipping Confirmation Email</h3>
+      <p>Triggered: when the order is marked as fulfilled in Shopify and a tracking number is entered.</p>
+
+      <div class="copy-label">Subject Line</div>
+      <div class="policy-copy">
+        <p>Your Clinch IT order is on its way — [ORDER NUMBER]</p>
+      </div>
+
+      <div class="copy-label">Email Body — Key Sections</div>
+      <div class="policy-copy">
+        <h4>It's on its way</h4>
+        <p>Your order has been dispatched via DPD Next Day. Track your delivery using the link below.</p>
+        <p><strong>[DPD TRACKING LINK]</strong></p>
+        <p>DPD will send you delivery updates directly.</p>
+
+        <h4>Reminder — Your 90-Day Warranty</h4>
+        <p>Your warranty starts from the day you receive your item. If anything isn't right, contact us at <strong>vdavis@clinchit.com</strong> with your order number.</p>
+      </div>
+    </div>
+
+    <div class="subsection" id="email-delivered">
+      <h3>Out for Delivery / Delivered</h3>
+      <p>Shopify does not send a "delivered" email natively — this is handled by DPD's own customer notifications. Ensure DPD Local is configured to send delivery notifications directly to the customer (standard DPD behaviour when a phone number and email are provided at booking).</p>
+      <p>No additional Shopify configuration required here — ensure the shipping confirmation email sets the customer's expectation that DPD will contact them directly.</p>
+    </div>
+
+    <div class="subsection" id="email-return">
+      <h3>Return Request / Instructions</h3>
+      <p>Shopify does not have a native return request email in the standard notification suite unless a return is created via the admin. The recommended workflow for Clinch IT:</p>
+      <ol>
+        <li>Customer contacts Clinch IT via email or phone to initiate a return</li>
+        <li>Clinch IT creates the return in Shopify admin: <span class="admin-path">Orders → [Order] → Return</span></li>
+        <li>Shopify sends a return instructions email automatically once the return is created</li>
+      </ol>
+
+      <div class="copy-label">Return Instructions Email — Key Content to Add</div>
+      <div class="policy-copy">
+        <h4>Your Return is Authorised</h4>
+        <p>We've received your return request for order [ORDER NUMBER]. Here's what to do next.</p>
+
+        <h4>Packaging Your Item</h4>
+        <p>Use the original packaging where possible. If it's damaged, use robust replacement packaging. For items containing batteries, packaging must be rigid and the item secured against movement. Damage caused by inadequate packaging during transit may affect your return.</p>
+
+        <h4>Return Address</h4>
+        <p>Clinch IT &nbsp;·&nbsp; Unit C3 Chaucer, Kemsing, Sevenoaks, Kent TN15 6PL</p>
+
+        <h4>Once We Receive It</h4>
+        <p>We'll inspect the item within <strong>5 business days</strong> and process your refund or replacement. You'll hear from us by email once complete.</p>
+
+        <h4>Questions?</h4>
+        <p>vdavis@clinchit.com &nbsp;·&nbsp; 020 3822 0855 (Option 3)</p>
+      </div>
+    </div>
+
+    <div class="subsection" id="email-refund">
+      <h3>Refund Confirmation Email</h3>
+      <p>Triggered automatically when a refund is issued in Shopify: <span class="admin-path">Orders → [Order] → Refund</span>.</p>
+      <p>Shopify's default refund email is functional. Customise to add:</p>
+      <ul>
+        <li>A clear statement of the refund amount and the payment method it will be returned to</li>
+        <li>A note that card refunds may take 3–5 business days to appear</li>
+        <li>Contact details if the customer has further questions</li>
+      </ul>
+      <div class="copy-label">Refund Email — Additional Copy</div>
+      <div class="policy-copy">
+        <p>Your refund of <strong>[REFUND AMOUNT]</strong> has been processed to your original payment method. Please allow 3–5 business days for it to appear on your statement, depending on your bank.</p>
+        <p>If you have any questions, email us at <strong>vdavis@clinchit.com</strong> or call <strong>020 3822 0855 (Option 3)</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: PRODUCT INTAKE PROCESS -->
+  <!-- ============================================================ -->
+
+  <div class="section" id="intake-overview">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2>Product Intake Process</h2>
+    </div>
+
+    <p>Adding new products to Shopify is Clinch IT's ongoing operational responsibility post-launch. This section defines the process, pro forma data requirements, tag application rules, and recommended tools. It is not a one-time configuration task — it is the repeating workflow that keeps the store accurate and the filters functional.</p>
+
+    <div class="callout confirmed">
+      <div class="callout-label">Ownership</div>
+      Product intake is Clinch IT's responsibility post-launch. The developer's role ends at schema setup and template configuration. Clinch IT staff enter stock on an ongoing basis. This section is written for the person doing that work.
+    </div>
+
+    <p>The architecture document (v2.0) defines all metafields, tags, and collection rules. This section translates those definitions into an operational intake checklist. The two documents should be read together. Cross-references to architecture sections are noted throughout.</p>
+  </div>
+
+  <div class="section" id="intake-proforma">
+    <div class="section-header">
+      <div class="section-num">06a</div>
+      <h2>Intake Pro Forma</h2>
+    </div>
+
+    <p>Every product entered into Shopify must have the following fields populated before it is set to Active. Incomplete products will break filters, appear incorrectly in collections, or display missing data on product pages.</p>
+
+    <p>Fields are split by product type. Universal fields apply to all categories. Type-specific fields apply only to that category. Fields marked <strong>Required</strong> must be filled in — the product should not go live without them. Fields marked <strong>Recommended</strong> should be filled in where the data is available.</p>
+
+    <div class="subsection">
+      <h3>Universal Fields — All Product Types</h3>
+      <p><em>Architecture reference: Section 6a — Universal Metafields</em></p>
+      <table>
+        <thead><tr><th>Field</th><th>Location in Shopify</th><th>Required?</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Title</td><td>Product page → Title</td><td>Required</td><td>Format: Brand + Model + Key Spec. e.g. "Apple MacBook Air M1 · 16GB · 256GB"</td></tr>
+          <tr><td>Product type</td><td>Product page → Product type</td><td>Required</td><td>Must match the required product type taxonomy exactly. See tag taxonomy below.</td></tr>
+          <tr><td>Vendor</td><td>Product page → Vendor</td><td>Required</td><td>Brand name. Drives brand collection rules. e.g. "Apple", "Dell", "HP"</td></tr>
+          <tr><td>Price</td><td>Product page → Pricing</td><td>Required</td><td>Inclusive of VAT. Compare-at price optional (for struck-through RRP).</td></tr>
+          <tr><td>Images</td><td>Product page → Media</td><td>Required</td><td>Real unit photos. Square crop. Min 1 hero image. Additional condition photos via images_additional metafield.</td></tr>
+          <tr><td>Inventory</td><td>Product page → Inventory</td><td>Required</td><td>Set to 1 for each physical unit (one product = one unit). Track quantity enabled.</td></tr>
+          <tr><td>SKU</td><td>Product page → Inventory → SKU</td><td>Required</td><td>Internal reference. Match to Clinch IT's existing SKU or serial number convention.</td></tr>
+          <tr><td>Weight</td><td>Product page → Shipping → Weight</td><td>Required</td><td>Needed for EU carrier-calculated rates. Enter in kg.</td></tr>
+          <tr><td>condition_grade</td><td>Product page → Metafields</td><td>Required</td><td>Grade A / Grade B / Grade C exactly. Drives Condition filter and collection rules.</td></tr>
+          <tr><td>condition_notes</td><td>Product page → Metafields</td><td>Required</td><td>Free-text cosmetic description. Be specific — vague notes erode trust.</td></tr>
+          <tr><td>colour</td><td>Product page → Metafields</td><td>Recommended</td><td>e.g. Silver, Space Grey, Black</td></tr>
+          <tr><td>charger_included</td><td>Product page → Metafields</td><td>Required</td><td>true or false. Always specify — buyers ask.</td></tr>
+          <tr><td>warranty_months</td><td>Product page → Metafields</td><td>Required</td><td>Enter 3 (90 days = 3 months). Displayed on product page.</td></tr>
+          <tr><td>serial_number</td><td>Product page → Metafields</td><td>Required</td><td>Hidden from storefront. Ops reference only.</td></tr>
+          <tr><td>Tags — Grade</td><td>Product page → Tags</td><td>Required</td><td>grade-a / grade-b / grade-c. Must match condition_grade value.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subsection">
+      <h3>Laptop-Specific Fields</h3>
+      <p><em>Architecture reference: Section 6b — Laptop Metafields</em></p>
+      <table>
+        <thead><tr><th>Field</th><th>Required?</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>processor_brand</td><td>Required</td><td>Intel / AMD / Apple</td></tr>
+          <tr><td>processor_series</td><td>Required</td><td>e.g. Core i7, Ryzen 5, M1, M2</td></tr>
+          <tr><td>processor_model</td><td>Recommended</td><td>e.g. i7-1165G7</td></tr>
+          <tr><td>processor_cores</td><td>Recommended</td><td>Integer e.g. 8</td></tr>
+          <tr><td>ram_gb</td><td>Required</td><td>Integer: 4, 8, 16, 32, 64</td></tr>
+          <tr><td>storage_gb</td><td>Required</td><td>Integer: 128, 256, 512, 1024, 2048</td></tr>
+          <tr><td>storage_type</td><td>Required</td><td>SSD / HDD</td></tr>
+          <tr><td>screen_size_inches</td><td>Required</td><td>Decimal e.g. 13.3 — also determines screen size tag band</td></tr>
+          <tr><td>gpu_type</td><td>Required</td><td>Integrated / Dedicated</td></tr>
+          <tr><td>operating_system</td><td>Required</td><td>Windows 11 / Windows 10 / macOS / No OS</td></tr>
+          <tr><td>battery_health_pct</td><td>Required</td><td>Integer e.g. 85 — also determines battery health tag band</td></tr>
+          <tr><td>battery_cycles</td><td>Recommended</td><td>Integer if available from diagnostics</td></tr>
+          <tr><td>Tags — Screen size band</td><td>Required</td><td>screen-11-12 / screen-13-14 / screen-15-16 / screen-17-plus. Derived from screen_size_inches. See tag rules below.</td></tr>
+          <tr><td>Tags — Battery band</td><td>Required</td><td>battery-90-plus / battery-80-90 / battery-70-80 / battery-60-70 / battery-50-60. Derived from battery_health_pct. See tag rules below.</td></tr>
+          <tr><td>Tags — OS</td><td>Required</td><td>os-windows / os-macos / os-none</td></tr>
+          <tr><td>Tags — Brand</td><td>Required</td><td>brand-apple / brand-dell / brand-hp etc.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subsection">
+      <h3>Desktop-Specific Fields</h3>
+      <p><em>Architecture reference: Section 6c — Desktop Metafields</em></p>
+      <table>
+        <thead><tr><th>Field</th><th>Required?</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>processor_brand</td><td>Required</td><td>Intel / AMD / Apple</td></tr>
+          <tr><td>processor_series</td><td>Required</td><td>e.g. Core i7, Ryzen 7</td></tr>
+          <tr><td>processor_model</td><td>Recommended</td><td>e.g. i7-10700</td></tr>
+          <tr><td>ram_gb</td><td>Required</td><td>Integer: 8, 16, 32, 64</td></tr>
+          <tr><td>storage_gb</td><td>Required</td><td>Integer</td></tr>
+          <tr><td>storage_type</td><td>Required</td><td>SSD / HDD</td></tr>
+          <tr><td>gpu_type</td><td>Required</td><td>Integrated / Dedicated</td></tr>
+          <tr><td>operating_system</td><td>Required</td><td>Windows 11 / Windows 10 / macOS / No OS</td></tr>
+          <tr><td>form_factor</td><td>Required</td><td>Tower / All-in-One — drives form factor filter</td></tr>
+          <tr><td>screen_size_inches</td><td>Required (All-in-One only)</td><td>All-in-One units only</td></tr>
+          <tr><td>Tags — Brand, OS, form factor</td><td>Required</td><td>brand-[x], os-[x], all-in-one (if applicable)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subsection">
+      <h3>Phone-Specific Fields</h3>
+      <p><em>Architecture reference: Section 6d — Phone Metafields</em></p>
+      <table>
+        <thead><tr><th>Field</th><th>Required?</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>storage_gb</td><td>Required</td><td>64, 128, 256, 512</td></tr>
+          <tr><td>network_lock</td><td>Required</td><td>Unlocked / EE / O2 / Vodafone / Three</td></tr>
+          <tr><td>battery_health_pct</td><td>Required</td><td>Integer — also determines battery health tag band</td></tr>
+          <tr><td>battery_cycles</td><td>Recommended</td><td>If available from diagnostics</td></tr>
+          <tr><td>imei_clean</td><td>Required</td><td>true = clean IMEI check passed. Never list a phone without confirming this.</td></tr>
+          <tr><td>Tags — Battery band</td><td>Required</td><td>Derived from battery_health_pct</td></tr>
+          <tr><td>Tags — Network</td><td>Required</td><td>unlocked / network-ee / network-o2 / network-vodafone / network-three</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subsection">
+      <h3>Tablet-Specific Fields <span class="badge badge-yes" style="font-size:11px;">confirmed v1.5</span></h3>
+      <p><em>Architecture reference: Section 6e — Tablet Metafields</em></p>
+      <table>
+        <thead><tr><th>Field</th><th>Required?</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>storage_gb</td><td>Required</td><td>64, 128, 256, 512 — same metafield as laptops/phones</td></tr>
+          <tr><td>screen_size_inches</td><td>Required</td><td>Decimal, e.g. 9.7, 10.9 — same metafield as laptops. Used as a direct filter for tablets (not tag-banded, given the small value range)</td></tr>
+          <tr><td>network_lock</td><td>Required</td><td>Wi-Fi only / Wi-Fi + Cellular — same metafield as phones, different allowed values</td></tr>
+          <tr><td>battery_health_pct</td><td>Required</td><td>Integer — also determines battery health tag band</td></tr>
+          <tr><td>battery_cycles</td><td>Recommended</td><td>If available from diagnostics</td></tr>
+          <tr><td>Tags — Battery band</td><td>Required</td><td>Derived from battery_health_pct — see §06b</td></tr>
+          <tr><td>Tags — Connectivity</td><td>Required</td><td>connectivity-wifi / connectivity-wifi-cellular — derived from network_lock</td></tr>
+        </tbody>
+      </table>
+      <div class="callout confirmed">
+        <div class="callout-label">Confirmed stock at launch (2 SKUs)</div>
+        Apple iPad Air 2 64GB 9.7" Wi-Fi (£49) and Apple iPad Mini 6th Gen 64GB Wi-Fi + 5G (£279). Both are Apple — vendor field = "Apple", product type = "Tablet". The iPad Mini has cellular (+5G), so network_lock = "Wi-Fi + Cellular" → tag connectivity-wifi-cellular. The iPad Air 2 is Wi-Fi only → tag connectivity-wifi.
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="intake-tags">
+    <div class="section-header">
+      <div class="section-num">06b</div>
+      <h2>Tag Application Rules</h2>
+    </div>
+
+    <p><em>Architecture reference: Section 8 — Automated Collection Rules &amp; Tag Taxonomy</em></p>
+    <p>Tags must be applied consistently and exactly. A typo creates a new tag that Shopify treats as different — the product will not appear in the correct collection or filter. The tables below define the exact tag strings to use for each case.</p>
+
+    <div class="callout legal">
+      <div class="callout-label">Critical</div>
+      Tag format is case-sensitive and hyphen-delimited. "Brand-Apple" and "brand-apple" are different tags. Always use lowercase. Never use spaces. Copy the exact strings from the tables below.
+    </div>
+
+    <div class="subsection">
+      <h3>Battery Health Band Tags — Laptops, Phones &amp; Tablets <span class="badge badge-yes" style="font-size:11px;">tablets added v1.5</span></h3>
+      <p>Derived from the <code>battery_health_pct</code> metafield value. Apply the corresponding tag on intake. Same bands apply across laptops, phones, and tablets.</p>
+      <table>
+        <thead><tr><th>battery_health_pct value</th><th>Tag to apply</th></tr></thead>
+        <tbody>
+          <tr><td>90% and above</td><td><code>battery-90-plus</code></td></tr>
+          <tr><td>80% to 89%</td><td><code>battery-80-90</code></td></tr>
+          <tr><td>70% to 79%</td><td><code>battery-70-80</code></td></tr>
+          <tr><td>60% to 69%</td><td><code>battery-60-70</code></td></tr>
+          <tr><td>50% to 59%</td><td><code>battery-50-60</code></td></tr>
+        </tbody>
+      </table>
+      <div class="callout confirmed">
+        <div class="callout-label">Confirmed</div>
+        Battery health data will be supplied as part of the product data on intake. Tier bands start at a 50% floor as proposed — apply the band tag based on the measured <code>battery_health_pct</code> value using the table above.
+      </div>
+    </div>
+
+    <div class="subsection">
+      <h3>Screen Size Band Tags — Laptops</h3>
+      <p>Derived from the <code>screen_size_inches</code> metafield value.</p>
+      <table>
+        <thead><tr><th>screen_size_inches value</th><th>Tag to apply</th></tr></thead>
+        <tbody>
+          <tr><td>11.0 to 12.9 inches</td><td><code>screen-11-12</code></td></tr>
+          <tr><td>13.0 to 14.9 inches</td><td><code>screen-13-14</code></td></tr>
+          <tr><td>15.0 to 16.9 inches</td><td><code>screen-15-16</code></td></tr>
+          <tr><td>17.0 inches and above</td><td><code>screen-17-plus</code></td></tr>
+        </tbody>
+      </table>
+      <div class="callout note" style="border-left:3px solid var(--grey-400);background:var(--grey-50,#f9f9f9);padding:10px 14px;font-size:13px;">
+        <strong>Tablets do not use screen size band tags.</strong> Tablet screen sizes are filtered directly via the <code>screen_size_inches</code> metafield (see Architecture §6f) — the value range across tablet stock is small enough that a direct checkbox filter works without banding.
+      </div>
+    </div>
+
+    <div class="subsection">
+      <h3>Connectivity Tags — Tablets <span class="badge badge-yes" style="font-size:11px;">confirmed v1.5</span></h3>
+      <p>Derived from the <code>network_lock</code> metafield value for tablets (Wi-Fi only / Wi-Fi + Cellular). Distinct from the phone network/carrier tags below, though both use the same underlying metafield.</p>
+      <table>
+        <thead><tr><th>network_lock value (tablets)</th><th>Tag to apply</th></tr></thead>
+        <tbody>
+          <tr><td>Wi-Fi only</td><td><code>connectivity-wifi</code></td></tr>
+          <tr><td>Wi-Fi + Cellular</td><td><code>connectivity-wifi-cellular</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subsection">
+      <h3>Brand Tags</h3>
+      <table>
+        <thead><tr><th>Brand</th><th>Tag</th></tr></thead>
+        <tbody>
+          <tr><td>Apple</td><td><code>brand-apple</code></td></tr>
+          <tr><td>Acer</td><td><code>brand-acer</code></td></tr>
+          <tr><td>ASUS</td><td><code>brand-asus</code></td></tr>
+          <tr><td>Dell</td><td><code>brand-dell</code></td></tr>
+          <tr><td>HP</td><td><code>brand-hp</code></td></tr>
+          <tr><td>Lenovo</td><td><code>brand-lenovo</code></td></tr>
+          <tr><td>Microsoft</td><td><code>brand-microsoft</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subsection">
+      <h3>Other Required Tags</h3>
+      <table>
+        <thead><tr><th>Category</th><th>Tag</th><th>When to apply</th></tr></thead>
+        <tbody>
+          <tr><td>Grade</td><td><code>grade-a</code> / <code>grade-b</code> / <code>grade-c</code> / <code>grade-d</code></td><td>All products. Must match condition_grade metafield exactly.</td></tr>
+          <tr><td>OS</td><td><code>os-windows</code> / <code>os-macos</code> / <code>os-none</code></td><td>Laptops and desktops</td></tr>
+          <tr><td>Form factor</td><td><code>all-in-one</code></td><td>All-in-One desktops only</td></tr>
+          <tr><td>Gaming</td><td><code>gaming</code></td><td>Laptops with dedicated GPU marketed as gaming units</td></tr>
+          <tr><td>Network (carrier lock)</td><td><code>unlocked</code> / <code>network-ee</code> / <code>network-o2</code> / <code>network-vodafone</code> / <code>network-three</code></td><td>Phones only. For tablets, use Connectivity tags above instead.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section" id="intake-tools">
+    <div class="section-header">
+      <div class="section-num">06c</div>
+      <h2>Recommended Tools</h2>
+    </div>
+
+    <div class="subsection">
+      <h3>Matrixify (Recommended for Bulk Import)</h3>
+      <p>Matrixify (formerly Excelify) is the recommended tool for bulk product upload and ongoing stock management at volume. It allows product data to be managed in Excel or Google Sheets and imported directly into Shopify, including metafields, tags, and all standard product fields.</p>
+
+      <table>
+        <thead><tr><th>Capability</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Metafield support</td><td>Full — all custom metafields can be populated via Matrixify columns. This is the key advantage over Shopify's native CSV import, which does not support metafields.</td></tr>
+          <tr><td>Tag management</td><td>Tags are managed as a comma-separated column in the import sheet. Bulk tag application and removal is supported.</td></tr>
+          <tr><td>Update without overwrite</td><td>Matrixify can update specific fields on existing products without overwriting the whole record. Useful for price updates, condition updates, and inventory changes.</td></tr>
+          <tr><td>Export</td><td>Full export of Shopify product data to Excel. Use this to build a master stock spreadsheet that mirrors Shopify.</td></tr>
+          <tr><td>Error reporting</td><td>Import errors are reported row-by-row so bad data is caught before going live.</td></tr>
+        </tbody>
+      </table>
+
+      <p>Install: <span class="admin-path">Shopify App Store → search "Matrixify"</span>. Free tier available. Paid tiers based on product volume — confirm which tier is appropriate based on Clinch IT's catalogue size.</p>
+      <p style="margin-top:8px;"><strong>Import template:</strong> <a href="/clinch-it-matrixify-import-template-v1.1.xlsx" download style="color:inherit;">Download Clinch IT Matrixify Import Template v1.1 (xlsx) &darr;</a></p>
+
+      <div class="callout inferred">
+        <div class="callout-label">When to Use Matrixify vs Manual Entry</div>
+        <ul style="margin: 4px 0 0 16px;">
+          <li><strong>Manual entry (Shopify admin):</strong> Adding 1–5 products at a time. Suitable for initial stock entry while learning the schema.</li>
+          <li><strong>Matrixify:</strong> Adding 10+ products at once, or updating prices/conditions across multiple products simultaneously. The right tool for any volume operation.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <h3>Shopify Native CSV — Not Recommended for This Build</h3>
+      <p>Shopify's built-in product CSV import does not support metafields. It can create basic product records but all metafield data (RAM, storage, battery health, condition grade, etc.) would need to be entered manually afterwards. For a metafield-heavy build like Clinch IT's, the native CSV is insufficient as a primary intake tool. It may be useful for initial product skeleton creation before metafields are populated.</p>
+    </div>
+
+    <div class="subsection">
+      <h3>Shopify Search &amp; Discovery — Filter Health Check</h3>
+      <p>After any bulk import, verify filter health in the Search &amp; Discovery app: <span class="admin-path">Apps → Search &amp; Discovery → Filters</span>. Check that new metafield values are appearing correctly as filter options. If a value is missing from a filter, it usually means the metafield was not populated consistently (e.g. "16 GB" instead of "16" for ram_gb).</p>
+    </div>
+
+    <div class="subsection">
+      <h3>Recommended Intake Workflow — Single Unit (Manual)</h3>
+    </div>
+  </div>
+
+  <div class="section" id="intake-workflow">
+    <div class="section-header">
+      <div class="section-num">06d</div>
+      <h2>Step-by-Step Intake Workflow</h2>
+    </div>
+
+    <p>This is the repeating process for adding a new unit to Shopify. Follow this order — fields that drive automated collection rules and filters must be set correctly before the product is made Active.</p>
+
+    <div class="config-step">
+      <h4>Step 1 — Inspect and grade the unit</h4>
+      <p>Before opening Shopify: run diagnostics, record battery health percentage, confirm all components present, assign condition grade (A/B/C), write condition notes. Have the serial number to hand.</p>
+    </div>
+
+    <div class="config-step">
+      <h4>Step 2 — Photograph the unit</h4>
+      <p>Take real unit photos: hero image (square crop, white or neutral background), plus condition photos showing any cosmetic wear noted in condition notes. Do not use stock images for refurb units.</p>
+    </div>
+
+    <div class="config-step">
+      <h4>Step 3 — Create the product in Shopify</h4>
+      <p><span class="admin-path">Products → Add product</span></p>
+      <p>Fill in: title (Brand + Model + Key Spec format), product type, vendor, price, compare-at price if applicable. Set status to <strong>Draft</strong> — do not set to Active until all fields are complete.</p>
+    </div>
+
+    <div class="config-step">
+      <h4>Step 4 — Upload images</h4>
+      <p>Upload hero image first (Shopify uses first image as the collection card image), then condition photos. Add additional condition photos to the <code>images_additional</code> metafield if more than the main gallery.</p>
+    </div>
+
+    <div class="config-step">
+      <h4>Step 5 — Fill in all metafields</h4>
+      <p>Scroll to the Metafields section on the product page. Fill in every required metafield for the product type. Use the pro forma tables above as the checklist. Do not skip warranty_months or charger_included.</p>
+    </div>
+
+    <div class="config-step">
+      <h4>Step 6 — Apply all tags</h4>
+      <p>In the Tags field, add every required tag for this product type. Use the tag tables above. Key checks:</p>
+      <ul>
+        <li>Grade tag matches condition_grade metafield</li>
+        <li>Battery band tag derived from battery_health_pct value</li>
+        <li>Screen size band tag derived from screen_size_inches (laptops)</li>
+        <li>Brand tag matches vendor field</li>
+        <li>OS tag present (laptops/desktops)</li>
+        <li>Network tag present (phones)</li>
+      </ul>
+    </div>
+
+    <div class="config-step">
+      <h4>Step 7 — Set inventory</h4>
+      <p>Set quantity to <strong>1</strong>. Enable inventory tracking. Enter SKU.</p>
+    </div>
+
+    <div class="config-step">
+      <h4>Step 8 — Enter weight</h4>
+      <p>Enter product weight in kg in the Shipping section. Required for EU calculated rates.</p>
+    </div>
+
+    <div class="config-step">
+      <h4>Step 9 — Preview and check</h4>
+      <p>Before activating: use the product page preview to check the spec table displays correctly and condition notes are visible. Check the product would appear in the correct collection by verifying product type, vendor, and tags against the collection rules in the architecture document (§8).</p>
+    </div>
+
+    <div class="config-step">
+      <h4>Step 10 — Set to Active</h4>
+      <p>Change product status from Draft to <strong>Active</strong>. The product will appear in all matching automated collections immediately. The eBay sync app will pick it up on its next sync cycle.</p>
+    </div>
+
+    <div class="config-step">
+      <h4>Step 11 — Verify in Search &amp; Discovery</h4>
+      <p>After activating, do a quick filter check on the relevant collection page to confirm the product appears in the correct filter results. If it doesn't appear under a filter it should match, the most likely cause is a metafield value inconsistency — check the value format against existing products.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: ARCHITECTURE CROSS-REFERENCE -->
+  <!-- ============================================================ -->
+
+  <div class="section" id="xref">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <h2>Architecture Cross-Reference</h2>
+    </div>
+
+    <p>This document covers store configuration and operational process. The Architecture Document v2.4 covers site structure, collections, filters, metafields, and URL hierarchy. The table below maps each configuration area to the relevant architecture section, and flags where configuration decisions are constrained by or dependent on architecture decisions already made.</p>
+
+    <table>
+      <thead><tr><th>Configuration Area</th><th>Architecture Section</th><th>Dependency / Note</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Shipping policy — free UK delivery</td>
+          <td>§10 Trust Architecture</td>
+          <td>Architecture doc §10 lists "Free UK Shipping" as a trust badge placeholder pending confirmation. Now confirmed — update trust badge copy in architecture to "Free UK Delivery" and utility bar messaging accordingly.</td>
+        </tr>
+        <tr>
+          <td>Warranty — 90 days</td>
+          <td>§10 Trust Architecture; §6a metafield warranty_months</td>
+          <td>Architecture §10 listed warranty period as unconfirmed. Now confirmed at 90 days (3 months). Update: (1) trust badge copy to "90-Day Warranty"; (2) warranty_months metafield default value to 3; (3) utility bar messaging; (4) /pages/warranty content.</td>
+        </tr>
+        <tr>
+          <td>Returns window — 14 days statutory</td>
+          <td>§10 Trust Architecture</td>
+          <td>Architecture §10 listed returns window as unconfirmed. Statutory minimum confirmed as 14 days. Trust badge copy: "14-Day Returns". Full policy in this document (§01a).</td>
+        </tr>
+        <tr>
+          <td>Grading standard — A/B/C/D</td>
+          <td>§9 Grading Standard</td>
+          <td>Four-grade system (A/B/C/D) confirmed from Clinch IT warranty document. Grade D confirmed in scope for Shopify (resolved v2.2/v1.4) — added to grading standard, filters (§5), and collection rules (§8). Battery thresholds per grade remain unconfirmed in both documents.</td>
+        </tr>
+        <tr>
+          <td>Battery health bands — filter tags</td>
+          <td>§5 Filter Architecture; §8 Tag Taxonomy</td>
+          <td>Tag bands defined in architecture §8 (battery-90-plus through battery-50-60). Floor of 50% is proposed, not confirmed. Intake pro forma (this document §06b) references these bands directly — they must be finalised before stock intake begins.</td>
+        </tr>
+        <tr>
+          <td>condition_grade metafield</td>
+          <td>§6a Universal Metafields; §8 Collection Rules</td>
+          <td>Architecture defines condition_grade as the source for the Condition filter and collection rules. Grade D confirmed in scope (v2.2) — grade-d tag and condition_grade allowed value added across laptops, desktops, and phones.</td>
+        </tr>
+        <tr>
+          <td>Product type taxonomy</td>
+          <td>§8 Required Product Types</td>
+          <td>Architecture §8 defines the required product type strings. Intake pro forma references these — types must match exactly or automated collection rules will not fire. No changes from architecture.</td>
+        </tr>
+        <tr>
+          <td>Variant strategy — one product per unit</td>
+          <td>§7 Product Variant Strategy</td>
+          <td>Architecture §7 confirmed: each physical unit = one product. Inventory = 1 per product. Intake workflow (this document §06d) is built on this assumption throughout.</td>
+        </tr>
+        <tr>
+          <td>eBay sync</td>
+          <td>§11 Implementation Priority — Phase 7</td>
+          <td>Architecture §11 defers eBay sync to Phase 7. The intake workflow in this document (Step 10) notes the sync app picks up Active products on its next cycle. No configuration work required here until Phase 7 begins — but the product type, tag, and metafield standards defined in both documents determine how cleanly the sync app can map Shopify data to eBay item specifics.</td>
+        </tr>
+        <tr>
+          <td>Trust architecture — utility bar</td>
+          <td>§3 Navigation — Utility Bar; §10 Trust Architecture</td>
+          <td>Architecture §3 notes utility bar messaging as a placeholder. Three confirmed trust signals now available to populate it: "Free UK Delivery", "90-Day Warranty", "14-Day Returns". These should replace the placeholder copy in the architecture document.</td>
+        </tr>
+        <tr>
+          <td>Phone metafields — scope</td>
+          <td>§6d Phone Metafields</td>
+          <td>Architecture §6d intentionally minimal pending phone stock breakdown. Intake pro forma (this document §06a) reflects this. Extend once phone sub-brand inventory is confirmed with Clinch IT.</td>
+        </tr>
+        <tr>
+          <td>Transactional email — warranty language</td>
+          <td>§10 Trust Architecture</td>
+          <td>Transactional emails in this document (§05) reference 90-day warranty and battery exclusion. This is now confirmed policy and should also inform the product page warranty CTA copy defined in architecture §11 Phase 5.</td>
+        </tr>
+        <tr>
+          <td>EU shipping</td>
+          <td>No architecture equivalent</td>
+          <td>EU and international shipping confirmed out of scope for launch (resolved v1.5). No architecture changes required — store ships UK only. EU configuration retained in this document (§02, EU &amp; International — Deferred) for reference if revisited post-launch.</td>
+        </tr>
+        <tr>
+          <td>"Other" category / B2B / pro-AV stock — excluded</td>
+          <td>Open Decisions — Decision #1 (resolved v2.4)</td>
+          <td>Architecture Open Decision #1 resolved — Option A confirmed. Clinch's eBay "Other" category (pro-AV, broadcast, enterprise networking, specialist liquidation stock) is excluded from Shopify and remains eBay-only. Store is scoped to core IT categories only: laptops, desktops, phones, tablets, and clean IT accessories. No changes required to accessories collections (Cameras, Headphones &amp; Speakers, Networking) — these remain as originally scoped for consumer/business IT context. VAT-exempt B2B pricing confirmed not required at launch (resolves OD-C12).</td>
+        </tr>
+        <tr>
+          <td>Tablets — reinstated</td>
+          <td>§1 Overview; §2 URL Hierarchy; §3 Navigation; §5 Filter Architecture; §6e/6f Metafields; §8 Collection Rules</td>
+          <td>Tablets confirmed back in scope (v2.3/v1.5) — Apple iPads only, 2 SKUs at launch. Architecture updated throughout: navigation, /collections/tablets and /collections/apple-ipads, Tablets filter table, new §6e tablet metafields (reusing existing definitions), §6f filter mappings, "Tablet" product type, connectivity tags. Intake pro forma (this document §06a) and tag taxonomy (§06b) updated to match. Matrixify template updated to v1.1 with tablet metafield columns.</td>
+        </tr>
+        <tr>
+          <td>DPD service — Next Day, account connection</td>
+          <td>No architecture equivalent — operational/configuration only</td>
+          <td>DPD Next Day confirmed as standard service (resolves OD-C07). Clinch IT's DPD Local account will be connected (resolves OD-C06) so tracking links populate transactional emails automatically — recommend Shipstation as the connection method. No architecture changes required.</td>
+        </tr>
+        <tr>
+          <td>Returns — free with prepaid label, 5-day inspection</td>
+          <td>§10 Trust Architecture (returns badge)</td>
+          <td>OD-C01 and OD-C14 resolved — returns within the 14-day statutory window are free with a prepaid label; inspection turnaround is 5 business days. "14-Day Returns" trust badge copy (architecture §10, confirmed v2.1) remains accurate — no architecture change needed, as the badge doesn't specify cost.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout open">
+      <div class="callout-label">Architecture Updates Applied (v2.3 / v1.5)</div>
+      Tablets confirmed back in scope. The following changes have been applied to Architecture v2.3:
+      <ul style="margin: 8px 0 0 16px;">
+        <li>§1: Product scope updated to include tablets</li>
+        <li>§2: /collections/tablets and /collections/apple-ipads added</li>
+        <li>§3: Tablets added to primary nav, footer, and new Tablets mega-menu</li>
+        <li>§5: New Tablets filter table (Condition incl. Grade D, Price, Storage, Screen Size, Connectivity, Battery Health)</li>
+        <li>§6e: New Tablets metafield section — no new definitions required, reuses existing fields</li>
+        <li>§6f: Tablets added to storage and battery health filter mappings; new screen_size_inches and connectivity mappings</li>
+        <li>§8: "Tablet" added to required product types; connectivity-wifi / connectivity-wifi-cellular tags added; /collections/apple-ipads rule added</li>
+        <li>Open Decision #1: option A wording updated to include tablets</li>
+      </ul>
+      <p style="margin-top:8px;">Remaining outstanding: battery health thresholds per grade — confirmed to start at a 50% floor (v1.5), but per-grade thresholds (A/B/C/D) still not itemised. Grading guide page (Architecture §11 Phase 6) should include Grade D and reflect the confirmed 50% floor when built.</p>
+    </div>
+
+    <div class="callout confirmed">
+      <div class="callout-label">Architecture Updates Applied (v2.4 / v1.6)</div>
+      Open Decision #1 resolved — Option A confirmed. Architecture's Open Decisions section updated: Decision #1 status changed to Resolved, with a note confirming the eBay "Other" category (pro-AV, broadcast, enterprise networking, specialist liquidation stock) is excluded from Shopify and remains eBay-only. No further changes required to §2 accessories collections — Cameras, Headphones &amp; Speakers, and Networking remain scoped as originally written for consumer/business IT context, since the broadcast-spec and enterprise items that prompted the original decision will not be listed on Shopify.
+    </div>
+  </div>
+
+
+
+  <div class="section" id="open-decisions">
+    <div class="section-header">
+      <div class="section-num">08</div>
+      <h2>Open Decisions — All Items</h2>
+    </div>
+
+    <p>The following items require a decision or confirmation from Clinch IT before the relevant section can be finalised.</p>
+
+    <p>The vast majority of open items have now been resolved by Clinch IT. Two items remain outstanding.</p>
+
+    <table>
+      <thead>
+        <tr><th>Ref</th><th>Section</th><th>Item</th><th>Impact</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>OD-C02</td>
+          <td>Warranty Policy</td>
+          <td>Warranty return shipping (days 15–90): the policy currently states buyer-pays inbound / Clinch-pays outbound. This was not addressed in Clinch IT's latest round of answers — confirm or amend.</td>
+          <td>Policy copy in Warranty Policy (§01b)</td>
+        </tr>
+        <tr>
+          <td>OD-C21</td>
+          <td>Policies / Emails / All</td>
+          <td>Generic contact email — confirm address to replace vdavis@clinchit.com across all policy pages and transactional email templates. A named individual's address should not appear in public-facing or system-generated communications. Suggested format: hello@clinchit.com or support@clinchit.com.</td>
+          <td>Global find-and-replace across all 13 instances once address is confirmed. Affects: Refund Policy, Warranty Policy, Shipping Policy, Terms of Service, all transactional email templates.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout confirmed">
+      <div class="callout-label">Resolved This Session</div>
+      <p style="margin-bottom:6px;">The following were resolved and are reflected throughout this document:</p>
+      <ul style="margin: 4px 0 0 16px; columns: 2; column-gap: 24px;">
+        <li>OD-C01 — Free returns with prepaid label</li>
+        <li>OD-C04 — All UK postcodes included, no restrictions</li>
+        <li>OD-C06 — DPD Local account connected</li>
+        <li>OD-C07 — DPD Next Day confirmed</li>
+        <li>OD-C08 — Channel Islands included in UK free zone</li>
+        <li>OD-C09 — Klarna out of scope</li>
+        <li>OD-C10 — PayPal included</li>
+        <li>OD-C11 — No VAT margin scheme, standard 20%</li>
+        <li>OD-C12 — No B2B exemption needed</li>
+        <li>OD-C13 — ICO registered, confirmed</li>
+        <li>OD-C14 — 5 business day inspection</li>
+        <li>OD-C16 — Abandoned checkout, opted-in only</li>
+        <li>OD-C17–C20 — EU shipping deferred, marked out of scope</li>
+        <li>Tablets — confirmed in scope (Apple iPads)</li>
+      </ul>
+    </div>
+
+    <div class="callout legal">
+      <div class="callout-label">Pre-Launch Legal Checklist</div>
+      <ul style="margin: 4px 0 0 16px;">
+        <li>Independent legal review of Terms of Service</li>
+        <li>Independent legal review of Refund &amp; Returns Policy (statutory rights language)</li>
+        <li>Cookie consent / privacy policy — UK GDPR compliance, include ICO registration number</li>
+        <li>Generic contact email confirmed and applied across all policy pages and email templates (OD-C21)</li>
+        <li>Warranty return shipping split confirmed (OD-C02)</li>
+      </ul>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</body>
+</html>
